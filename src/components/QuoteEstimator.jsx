@@ -13,6 +13,7 @@ function QuoteEstimator() {
   const { currency, minTotal, categories, deodorizeOptions } = pricingConfig;
   const [selections, setSelections] = useState({});
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+  const [qtyInputs, setQtyInputs] = useState({});
 
   const handleQtyChange = (itemId, delta) => {
     setSelections((prev) => {
@@ -20,11 +21,34 @@ function QuoteEstimator() {
       const nextQty = clamp((current.qty || 0) + delta, 0);
       return { ...prev, [itemId]: { ...current, qty: nextQty } };
     });
+    setQtyInputs((prev) => ({ ...prev, [itemId]: String(clamp((selections[itemId]?.qty || 0) + delta, 0)) }));
   };
 
   const handleQtyInput = (itemId, value) => {
     const parsed = Number.parseInt(value, 10);
+    setQtyInputs((prev) => ({ ...prev, [itemId]: value }));
     setSelections((prev) => {
+      const current = prev[itemId] || { qty: 0, protect: false, deodorize: 'none' };
+      const nextQty = Number.isFinite(parsed) ? clamp(parsed, 0) : 0;
+      return { ...prev, [itemId]: { ...current, qty: nextQty } };
+    });
+  };
+
+  const handleQtyFocus = (itemId) => {
+    setQtyInputs((prev) => ({ ...prev, [itemId]: '' }));
+  };
+
+  const handleQtyBlur = (itemId) => {
+    setQtyInputs((prev) => {
+      const raw = prev[itemId];
+      if (raw === undefined || raw === '') {
+        return { ...prev, [itemId]: '0' };
+      }
+      return prev;
+    });
+    setSelections((prev) => {
+      const raw = qtyInputs[itemId];
+      const parsed = Number.parseInt(raw, 10);
       const current = prev[itemId] || { qty: 0, protect: false, deodorize: 'none' };
       const nextQty = Number.isFinite(parsed) ? clamp(parsed, 0) : 0;
       return { ...prev, [itemId]: { ...current, qty: nextQty } };
@@ -73,11 +97,11 @@ function QuoteEstimator() {
 
   return (
     <>
-      <div className="row g-4">
+      <div className="row g-4 pb-5 pb-lg-0">
       <div className="col-lg-8">
         <div className="accordion" id="quoteAccordion">
           {categories.map((cat, catIdx) => (
-            <div className="accordion-item" key={cat.id}>
+            <div className="accordion-item mb-3" key={cat.id}>
               <h2 className="accordion-header" id={`heading-${cat.id}`}>
                 <button
                   className={`accordion-button ${catIdx === 0 ? '' : 'collapsed'}`}
@@ -99,7 +123,6 @@ function QuoteEstimator() {
                 id={`collapse-${cat.id}`}
                 className={`accordion-collapse collapse ${catIdx === 0 ? 'show' : ''}`}
                 aria-labelledby={`heading-${cat.id}`}
-                data-bs-parent="#quoteAccordion"
               >
                 <div className="accordion-body p-0">
                   <div className="table-responsive d-none d-md-block">
@@ -115,6 +138,7 @@ function QuoteEstimator() {
                       <tbody>
                         {cat.items.map((item) => {
                           const sel = selections[item.id] || { qty: 0, protect: false, deodorize: 'none' };
+                          const displayQty = qtyInputs[item.id] ?? String(sel.qty ?? 0);
                           return (
                             <tr key={item.id}>
                               <td>
@@ -128,8 +152,10 @@ function QuoteEstimator() {
                                     type="number"
                                     className="form-control text-center"
                                     min="0"
-                                    value={sel.qty === 0 ? '' : sel.qty}
+                                    value={displayQty}
                                     onChange={(e) => handleQtyInput(item.id, e.target.value)}
+                                    onFocus={() => handleQtyFocus(item.id)}
+                                    onBlur={() => handleQtyBlur(item.id)}
                                   />
                                   <button className="btn btn-outline-secondary" type="button" onClick={() => handleQtyChange(item.id, 1)}>+</button>
                                 </div>
@@ -166,9 +192,10 @@ function QuoteEstimator() {
                   </div>
 
                   {/* Mobile layout: per-row accordions */}
-                  <div className="d-md-none">
+                  <div className="d-md-none mt-3">
                     {cat.items.map((item) => {
                       const sel = selections[item.id] || { qty: 0, protect: false, deodorize: 'none' };
+                      const displayQty = qtyInputs[item.id] ?? String(sel.qty ?? 0);
                       return (
                         <div className="accordion" key={`m-${item.id}`} id={`acc-${cat.id}-${item.id}`}>
                           <div className="accordion-item">
@@ -194,7 +221,6 @@ function QuoteEstimator() {
                               id={`m-collapse-${item.id}`}
                               className="accordion-collapse collapse"
                               aria-labelledby={`m-heading-${item.id}`}
-                              data-bs-parent={`#acc-${cat.id}-${item.id}`}
                             >
                               <div className="accordion-body">
                                 <div className="mb-3">
@@ -205,8 +231,10 @@ function QuoteEstimator() {
                                       type="number"
                                       className="form-control text-center"
                                       min="0"
-                                      value={sel.qty === 0 ? '' : sel.qty}
+                                      value={displayQty}
                                       onChange={(e) => handleQtyInput(item.id, e.target.value)}
+                                      onFocus={() => handleQtyFocus(item.id)}
+                                      onBlur={() => handleQtyBlur(item.id)}
                                     />
                                     <button className="btn btn-outline-secondary" type="button" onClick={() => handleQtyChange(item.id, 1)}>+</button>
                                   </div>
@@ -252,7 +280,7 @@ function QuoteEstimator() {
       </div>
 
       <div className="col-lg-4 d-none d-lg-block">
-        <div className="card">
+        <div className="card position-sticky" style={{ top: '1rem' }}>
           <div className="card-header">Quote Summary</div>
           <div className="card-body">
             {totals.lines.length === 0 ? (

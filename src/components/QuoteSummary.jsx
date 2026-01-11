@@ -82,9 +82,9 @@ function QuoteSummary({ currency, minTotal, totals }) {
         {mobileOpen && (
           <div
             className="position-fixed start-0 end-0 bg-white border-top shadow-sm"
-            style={{ maxHeight: '45vh', overflowY: 'auto', bottom: '64px', zIndex: 1049 }}
+            style={{ maxHeight: '60vh', overflowY: 'auto', bottom: '80px', zIndex: 1049 }}
           >
-            <div className="p-3">
+            <div className="p-3 pb-5">
               {lines.length === 0 ? (
                 <p className="text-muted mb-0">Add quantities to see your estimate.</p>
               ) : (

@@ -1,8 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import config from '../config/yourInfo.json';
 
 function YourInformation({ value, onChange, onValidityChange, showErrors = false }) {
   const { title, description, fields } = config;
+  const formRef = useRef(null);
+  const pollIntervalRef = useRef(null);
+  const pollTimeoutRef = useRef(null);
+  const stopTimeoutRef = useRef(null);
+  const pollingEnabledRef = useRef(true);
   const [values, setValues] = useState(() => {
     if (value) return value;
     const seed = {};
@@ -15,6 +20,64 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
   useEffect(() => {
     if (value) setValues(value);
   }, [value]);
+
+  const syncFromDom = () => {
+    if (!pollingEnabledRef.current) return;
+    const node = formRef.current;
+    if (!node) return;
+    const collected = {};
+    node.querySelectorAll('[data-field-id]').forEach((el) => {
+      const id = el.getAttribute('data-field-id');
+      if (!id) return;
+      collected[id] = el.value ?? '';
+    });
+    setValues((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      Object.keys(collected).forEach((k) => {
+        const incoming = collected[k];
+        // Avoid overwriting a populated field with an empty value during autofill churn.
+        if (incoming === '' && prev[k]) return;
+        if (incoming !== prev[k]) {
+          next[k] = incoming;
+          changed = true;
+        }
+      });
+      if (!changed) return prev;
+      // After a change, let polling run a short tail then stop to avoid flicker.
+      if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current);
+      stopTimeoutRef.current = setTimeout(() => {
+        pollingEnabledRef.current = false;
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+        if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+      }, 450);
+      if (onChange) onChange(next);
+      return next;
+    });
+  };
+
+  const stopPolling = () => {
+    pollingEnabledRef.current = false;
+    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+    if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current);
+  };
+
+  const startPolling = (durationMs = 2000) => {
+    stopPolling();
+    pollingEnabledRef.current = true;
+    syncFromDom();
+    pollIntervalRef.current = setInterval(syncFromDom, 120);
+    pollTimeoutRef.current = setTimeout(() => {
+      stopPolling();
+    }, durationMs);
+  };
+
+  // Initial short poll to capture browser autofill after mount.
+  useEffect(() => {
+    startPolling(2200);
+    return stopPolling;
+  }, []);
 
   const visibleFields = useMemo(() => {
     return fields.filter((f) => {
@@ -73,6 +136,9 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
             required={f.required}
             value={val}
             autoComplete={autoComplete}
+            name={f.id}
+            data-field-id={f.id}
+            onInput={(e) => handleChange(f.id, e.target.value)}
             onChange={(e) => handleChange(f.id, e.target.value)}
           >
             <option value="">{f.placeholder || 'Select'}</option>
@@ -96,6 +162,9 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
             value={val}
             placeholder={f.placeholder || ''}
             autoComplete={autoComplete}
+            name={f.id}
+            data-field-id={f.id}
+            onInput={(e) => handleChange(f.id, e.target.value)}
             onChange={(e) => handleChange(f.id, e.target.value)}
           />
           {isInvalid ? <div className="invalid-feedback">This field is required.</div> : null}
@@ -113,6 +182,9 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
           value={val}
           placeholder={f.placeholder || ''}
           autoComplete={autoComplete}
+          name={f.id}
+          data-field-id={f.id}
+          onInput={(e) => handleChange(f.id, e.target.value)}
           onChange={(e) => handleChange(f.id, e.target.value)}
         />
         {isInvalid ? <div className="invalid-feedback">This field is required.</div> : null}
@@ -122,13 +194,21 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
 
   return (
     <div className="card">
-      <div className="card-body">
+      <form
+        className="card-body"
+        ref={formRef}
+        autoComplete="on"
+        onSubmit={(e) => e.preventDefault()}
+        onFocusCapture={() => {
+          startPolling(1500);
+        }}
+      >
         <h2 className="h4 mb-2">{title}</h2>
         {description ? <p className="text-muted mb-4">{description}</p> : null}
         <div className="row g-3">
           {visibleFields.map(renderField)}
         </div>
-      </div>
+      </form>
     </div>
   );
 }

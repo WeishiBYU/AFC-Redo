@@ -69,8 +69,8 @@ function App() {
               {errorMsg}
             </div>
           ) : null}
-          <div className="mt-4 d-flex justify-content-end">
-            <button className="btn btn-primary" type="button" onClick={goNext}>
+          <div className="mt-4 d-flex flex-column flex-md-row justify-content-end gap-3 mb-5">
+            <button className="btn btn-primary w-100 w-md-auto" type="button" onClick={goNext}>
               Next: Additional Information
             </button>
           </div>

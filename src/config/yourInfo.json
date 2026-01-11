@@ -1,0 +1,39 @@
+{
+  "title": "Your Information",
+  "description": "Tell us how to reach you and where to service.",
+  "fields": [
+    { "id": "firstName", "label": "First name", "type": "text", "required": true },
+    { "id": "lastName", "label": "Last name", "type": "text", "required": true },
+    { "id": "email", "label": "Email", "type": "email", "required": true },
+    { "id": "phone", "label": "Phone", "type": "tel", "required": true, "placeholder": "(###) ###-####" },
+    { "id": "address1", "label": "Service address", "type": "text", "required": true },
+    { "id": "address2", "label": "Apt/Suite", "type": "text", "required": false },
+    { "id": "city", "label": "City", "type": "text", "required": true },
+    { "id": "state", "label": "State", "type": "text", "required": true },
+    { "id": "zip", "label": "ZIP", "type": "text", "required": true },
+    {
+      "id": "attending",
+      "label": "Will the paying party be there to let us in on the day of the appointment?",
+      "type": "select",
+      "required": true,
+      "options": ["Yes", "No"],
+      "placeholder": "Select one"
+    },
+    {
+      "id": "payment",
+      "label": "Payment",
+      "type": "select",
+      "required": false,
+      "options": ["Pre-pay (required if not attending)", "Pay at service"],
+      "placeholder": "Select one",
+      "showIf": { "field": "attending", "equals": "No" }
+    },
+    {
+      "id": "special",
+      "label": "Special instructions",
+      "type": "textarea",
+      "required": false,
+      "placeholder": "Entry details, pets, parking, access codes"
+    }
+  ]
+}

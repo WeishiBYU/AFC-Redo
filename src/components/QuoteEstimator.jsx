@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import pricingConfig from '../config/pricing.json';
+import QuoteSummary from './QuoteSummary.jsx';
 
 function clamp(value, min) {
   return value < min ? min : value;
@@ -9,11 +10,13 @@ function formatCurrency(symbol, amount) {
   return `${symbol}${amount.toFixed(2)}`;
 }
 
-function QuoteEstimator() {
+function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTotalsChange, onValidityChange }) {
   const { currency, minTotal, categories, deodorizeOptions } = pricingConfig;
-  const [selections, setSelections] = useState({});
-  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false);
+  const [localSelections, setLocalSelections] = useState(() => selectionsProp || {});
   const [qtyInputs, setQtyInputs] = useState({});
+
+  const selections = selectionsProp ?? localSelections;
+  const setSelections = onSelectionsChange ?? setLocalSelections;
 
   const handleQtyChange = (itemId, delta) => {
     setSelections((prev) => {
@@ -94,6 +97,15 @@ function QuoteEstimator() {
     const enforcedTotal = Math.max(subtotal, minTotal);
     return { subtotal, enforcedTotal, lines };
   }, [categories, minTotal, selections]);
+
+  useEffect(() => {
+    if (onTotalsChange) {
+      onTotalsChange({ ...totals, currency, minTotal });
+    }
+    if (onValidityChange) {
+      onValidityChange(totals.lines.length > 0);
+    }
+  }, [totals, onTotalsChange, onValidityChange, currency, minTotal]);
 
   return (
     <>
@@ -279,108 +291,10 @@ function QuoteEstimator() {
         </div>
       </div>
 
-      <div className="col-lg-4 d-none d-lg-block">
-        <div className="card position-sticky" style={{ top: '1rem' }}>
-          <div className="card-header">Quote Summary</div>
-          <div className="card-body">
-            {totals.lines.length === 0 ? (
-              <p className="text-muted mb-0">Add quantities to see your estimate.</p>
-            ) : (
-              <ul className="list-group list-group-flush mb-3">
-                {totals.lines.map((line) => (
-                  <li key={line.id} className="list-group-item d-flex justify-content-between">
-                    <div>
-                      <div className="fw-semibold">{line.label}</div>
-                      <small className="text-muted">Qty {line.qty}</small>
-                    </div>
-                    <div className="text-end">
-                      <div>{formatCurrency(currency, line.linePrice)}</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="d-flex justify-content-between fw-semibold">
-              <span>Subtotal</span>
-              <span>{formatCurrency(currency, totals.subtotal)}</span>
-            </div>
-            <div className="d-flex justify-content-between fw-semibold mt-2">
-              <span>Total (min ${minTotal})</span>
-              <span>{formatCurrency(currency, totals.enforcedTotal)}</span>
-            </div>
-            {totals.subtotal < minTotal ? (
-              <small className="text-muted">Minimum applies; add {formatCurrency(currency, minTotal - totals.subtotal)} to reach ${minTotal}.</small>
-            ) : null}
-          </div>
-        </div>
+      <div className="col-lg-4">
+        <QuoteSummary currency={currency} minTotal={minTotal} totals={totals} />
       </div>
-      </div>
-
-      {/* Mobile sticky footer summary */}
-      <div className="d-lg-none">
-      <div className="position-fixed bottom-0 start-0 end-0 bg-light border-top shadow-sm p-3">
-        <div className="d-flex justify-content-between align-items-center">
-          <div>
-            <div className="fw-semibold mb-0">Total</div>
-            <small className="text-muted">
-              {totals.subtotal < minTotal
-                ? `Minimum ${currency}${minTotal.toFixed(2)} applies`
-                : 'Estimate'}
-            </small>
-          </div>
-          <div className="text-end">
-            <div className="fs-5 fw-semibold">
-              {formatCurrency(currency, totals.enforcedTotal)}
-            </div>
-            <button
-              type="button"
-              className="btn btn-link p-0"
-              onClick={() => setMobileSummaryOpen((v) => !v)}
-            >
-              {mobileSummaryOpen ? 'Hide details' : 'View details'}
-            </button>
-          </div>
-        </div>
-      </div>
-
-        {mobileSummaryOpen && (
-          <div
-            className="position-fixed start-0 end-0 bg-white border-top shadow-sm"
-            style={{ maxHeight: '45vh', overflowY: 'auto', bottom: '64px' }}
-          >
-            <div className="p-3">
-              {totals.lines.length === 0 ? (
-                <p className="text-muted mb-0">Add quantities to see your estimate.</p>
-              ) : (
-                <ul className="list-group list-group-flush mb-3">
-                  {totals.lines.map((line) => (
-                    <li key={line.id} className="list-group-item d-flex justify-content-between">
-                      <div>
-                        <div className="fw-semibold">{line.label}</div>
-                        <small className="text-muted">Qty {line.qty}</small>
-                      </div>
-                      <div className="text-end">
-                        <div>{formatCurrency(currency, line.linePrice)}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <div className="d-flex justify-content-between fw-semibold">
-                <span>Subtotal</span>
-                <span>{formatCurrency(currency, totals.subtotal)}</span>
-              </div>
-              <div className="d-flex justify-content-between fw-semibold mt-2">
-                <span>Total (min ${minTotal})</span>
-                <span>{formatCurrency(currency, totals.enforcedTotal)}</span>
-              </div>
-              {totals.subtotal < minTotal ? (
-                <small className="text-muted">Minimum applies; add {formatCurrency(currency, minTotal - totals.subtotal)} to reach ${minTotal}.</small>
-              ) : null}
-            </div>
-          </div>
-        )}
-      </div>
+    </div>
     </>
   );
 }

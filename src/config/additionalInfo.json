@@ -1,0 +1,38 @@
+{
+  "title": "Additional Information",
+  "description": "Tell us about any special conditions so we can prepare the right treatments.",
+  "questions": [
+    {
+      "id": "petUrine",
+      "label": "Pet urine issues",
+      "type": "select",
+      "required": true,
+      "options": ["None", "Minor odor", "Strong odor"],
+      "placeholder": "Select one"
+    },
+    {
+      "id": "preVacuum",
+      "label": "Pre-vacuuming prep",
+      "type": "select",
+      "required": true,
+      "options": ["Yes, please", "No, I will handle"],
+      "placeholder": "Select one",
+      "showIf": { "field": "hasCarpetCleaning", "equals": true }
+    },
+    {
+      "id": "stainTreatment",
+      "label": "Stain treatment",
+      "type": "select",
+      "required": true,
+      "options": ["None", "Spot treatment", "Full treatment"],
+      "placeholder": "Select one"
+    },
+    {
+      "id": "specialInstructions",
+      "label": "Special instructions or additional details",
+      "type": "textarea",
+      "required": false,
+      "placeholder": "Optional notes for access, pets, parking, stairs, or stains"
+    }
+  ]
+}

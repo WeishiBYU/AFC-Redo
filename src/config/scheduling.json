@@ -1,0 +1,7 @@
+{
+  "title": "Scheduling",
+  "description": "Choose your preferred date and available time slot. We confirm based on live availability.",
+  "fallbackText": "No slots available? Tap to request a callback and we will reach out with options.",
+  "blackoutDates": [],
+  "leadDays": 0
+}

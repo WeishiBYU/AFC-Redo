@@ -27,6 +27,33 @@ Planning checklist for a customizable, Bootstrap-based booking form that can be 
 - Inside each accordion: a table with rows = item types in the category; columns = Quantity, Protect (yes/no slider), Deodorize (none/mild/heavy selector).
 - Responsive rule: on phone ratio, table columns collapse into nested accordions per row with the item name as header, exposing Quantity/Protect/Deodorize controls inside.
 - Template guidance: build accordion/table via a shared template partial so all categories render uniformly from JSON config (categories, items, and option choices).
+ - Categories & items: flexible list via JSON; include CARPET CLEANING with rooms by default as sample data.
+ - Quantity control: numeric input with attached steppers (min 0); compact, attached controls for better scaling.
+ - Protect control: slider (Off by default); enabled only when Quantity > 0.
+ - Deodorize: options none/mild/heavy.
+ - Pricing display: show per-line price and line total; on mobile, show only total in a sticky footer with an expand button for itemization.
+ - Responsive behavior: nested per-row accordions are acceptable when columns collapse on mobile.
+ - Minimum: enforce $250 minimum in the right summary even on this step.
+
+### Implementation Plan — Quote Estimator
+- Data schema (JSON, draft)
+	- `categories[]`: id, label, description, items[].
+	- `items[]`: id, label, unit (room), basePrice (placeholder), minQty=0, maxQty (optional), protectEnabled=true/false, deodorizeOptions=["none","mild","heavy"].
+	- `ui`: currency symbol, copy strings, minTotal=250.
+- Template structure (Bootstrap)
+	- Accordion wrapper (per category) → table header row (Quantity | Protect | Deodorize) → body rows templated from `items[]`.
+	- Row controls: input group with steppers for quantity; slider for Protect (disabled when qty=0); select for Deodorize.
+	- Mobile: on small screens, render per-row accordion showing the three controls stacked; keep consistent partial for both modes.
+- Behaviors
+	- Disable Protect and Deodorize until qty > 0.
+	- Update right summary on every change; show subtotal and $250 minimum logic (if total < 250, show “Minimum $250 — balance to minimum: $X”).
+	- Sticky mobile footer: shows only total at bottom of screen with an upward-opening accordion to reveal full itemization; desktop shows full line items in right column.
+	- Validation: require at least one item with qty > 0 to proceed.
+
+### Pricing Conversation Notes (to finalize later)
+- Need rules for base prices per item, protect add-on pricing, deodorize option pricing, and any condition multipliers.
+- Clarify if protect/deodorize are flat per item, per quantity, or percentage-based.
+- Define tax/fees and how the $250 minimum interacts with discounts or fees.
 
 ## Layout Details — Step 2: Additional Information
 - Conditional display: questions shown based on selections in Quote Estimator (e.g., only show pre-vacuuming prep if carpet cleaning selected).

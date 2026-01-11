@@ -1,0 +1,26 @@
+{
+  "currency": "$",
+  "minTotal": 250,
+  "categories": [
+    {
+      "id": "carpet",
+      "label": "Carpet Cleaning",
+      "description": "Standard carpeted areas",
+      "items": [
+        { "id": "bedroom", "label": "Bedroom", "unit": "room", "basePrice": 0, "minQty": 0 },
+        { "id": "living", "label": "Living Room", "unit": "room", "basePrice": 0, "minQty": 0 },
+        { "id": "hallway", "label": "Hallway", "unit": "room", "basePrice": 0, "minQty": 0 }
+      ]
+    },
+    {
+      "id": "upholstery",
+      "label": "Upholstery Cleaning",
+      "description": "Sofas, chairs, sectionals",
+      "items": [
+        { "id": "sofa", "label": "Sofa", "unit": "piece", "basePrice": 0, "minQty": 0 },
+        { "id": "chair", "label": "Chair", "unit": "piece", "basePrice": 0, "minQty": 0 }
+      ]
+    }
+  ],
+  "deodorizeOptions": ["none", "mild", "heavy"]
+}

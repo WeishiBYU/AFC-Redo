@@ -4,10 +4,7 @@ import config from '../config/yourInfo.json';
 function YourInformation({ value, onChange, onValidityChange, showErrors = false }) {
   const { title, description, fields } = config;
   const formRef = useRef(null);
-  const pollIntervalRef = useRef(null);
-  const pollTimeoutRef = useRef(null);
-  const stopTimeoutRef = useRef(null);
-  const pollingEnabledRef = useRef(true);
+  const editingFieldRef = useRef(null);
   const [values, setValues] = useState(() => {
     if (value) return value;
     const seed = {};
@@ -21,63 +18,52 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
     if (value) setValues(value);
   }, [value]);
 
-  const syncFromDom = () => {
-    if (!pollingEnabledRef.current) return;
-    const node = formRef.current;
-    if (!node) return;
-    const collected = {};
-    node.querySelectorAll('[data-field-id]').forEach((el) => {
-      const id = el.getAttribute('data-field-id');
-      if (!id) return;
-      collected[id] = el.value ?? '';
-    });
+  const updateValue = (id, incoming, { allowEmpty = false } = {}) => {
     setValues((prev) => {
-      let changed = false;
-      const next = { ...prev };
-      Object.keys(collected).forEach((k) => {
-        const incoming = collected[k];
-        // Avoid overwriting a populated field with an empty value during autofill churn.
-        if (incoming === '' && prev[k]) return;
-        if (incoming !== prev[k]) {
-          next[k] = incoming;
-          changed = true;
-        }
-      });
-      if (!changed) return prev;
-      // After a change, let polling run a short tail then stop to avoid flicker.
-      if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current);
-      stopTimeoutRef.current = setTimeout(() => {
-        pollingEnabledRef.current = false;
-        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-        if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
-      }, 450);
+      if (!allowEmpty && incoming === '' && prev[id]) return prev;
+      if (incoming === prev[id]) return prev;
+      const next = { ...prev, [id]: incoming };
       if (onChange) onChange(next);
       return next;
     });
   };
 
-  const stopPolling = () => {
-    pollingEnabledRef.current = false;
-    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-    if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
-    if (stopTimeoutRef.current) clearTimeout(stopTimeoutRef.current);
+  const syncFromDom = () => {
+    const node = formRef.current;
+    if (!node) return;
+    node.querySelectorAll('[data-field-id]').forEach((el) => {
+      const id = el.getAttribute('data-field-id');
+      if (!id) return;
+      if (editingFieldRef.current === id) return; // don't fight the actively edited field
+      updateValue(id, el.value ?? '', { allowEmpty: true });
+    });
   };
 
-  const startPolling = (durationMs = 2000) => {
-    stopPolling();
-    pollingEnabledRef.current = true;
-    syncFromDom();
-    pollIntervalRef.current = setInterval(syncFromDom, 120);
-    pollTimeoutRef.current = setTimeout(() => {
-      stopPolling();
-    }, durationMs);
-  };
-
-  // Initial short poll to capture browser autofill after mount.
+  // Capture autofill/edits via DOM observers and input/change events.
   useEffect(() => {
-    startPolling(2200);
-    return stopPolling;
-  }, []);
+    const node = formRef.current;
+    if (!node) return undefined;
+
+    const handleInput = (e) => {
+      const id = e.target?.dataset?.fieldId;
+      if (!id) return;
+      const incoming = e.target.value ?? '';
+      updateValue(id, incoming, { allowEmpty: true });
+    };
+
+    node.addEventListener('input', handleInput, true);
+    node.addEventListener('change', handleInput, true);
+
+    // Initial sync to catch immediate autofill, then a short delayed sync.
+    syncFromDom();
+    const t = setTimeout(syncFromDom, 150);
+
+    return () => {
+      node.removeEventListener('input', handleInput, true);
+      node.removeEventListener('change', handleInput, true);
+      clearTimeout(t);
+    };
+  }, [onChange]);
 
   const visibleFields = useMemo(() => {
     return fields.filter((f) => {
@@ -103,7 +89,7 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
   }, [values, onChange]);
 
   const handleChange = (id, value) => {
-    setValues((prev) => ({ ...prev, [id]: value }));
+    updateValue(id, value, { allowEmpty: true });
   };
 
   const renderField = (f) => {
@@ -138,6 +124,8 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
             autoComplete={autoComplete}
             name={f.id}
             data-field-id={f.id}
+            onFocus={() => { editingFieldRef.current = f.id; }}
+            onBlur={() => { editingFieldRef.current = null; syncFromDom(); }}
             onInput={(e) => handleChange(f.id, e.target.value)}
             onChange={(e) => handleChange(f.id, e.target.value)}
           >
@@ -164,6 +152,8 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
             autoComplete={autoComplete}
             name={f.id}
             data-field-id={f.id}
+            onFocus={() => { editingFieldRef.current = f.id; }}
+            onBlur={() => { editingFieldRef.current = null; syncFromDom(); }}
             onInput={(e) => handleChange(f.id, e.target.value)}
             onChange={(e) => handleChange(f.id, e.target.value)}
           />
@@ -184,6 +174,8 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
           autoComplete={autoComplete}
           name={f.id}
           data-field-id={f.id}
+          onFocus={() => { editingFieldRef.current = f.id; }}
+          onBlur={() => { editingFieldRef.current = null; syncFromDom(); }}
           onInput={(e) => handleChange(f.id, e.target.value)}
           onChange={(e) => handleChange(f.id, e.target.value)}
         />
@@ -199,9 +191,6 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
         ref={formRef}
         autoComplete="on"
         onSubmit={(e) => e.preventDefault()}
-        onFocusCapture={() => {
-          startPolling(1500);
-        }}
       >
         <h2 className="h4 mb-2">{title}</h2>
         {description ? <p className="text-muted mb-4">{description}</p> : null}

@@ -3,28 +3,28 @@
   "description": "Tell us about any special conditions so we can prepare the right treatments.",
   "questions": [
     {
+    "id": "preVacuum",
+    "label": "Pre-vacuuming prep",
+    "type": "select",
+    "required": true,
+    "options": ["Yes, please", "No, I will handle", "Not sure"],
+    "placeholder": "Select one",
+    "showIf": { "field": "hasCarpetCleaning", "equals": true }
+    },
+    {
       "id": "petUrine",
       "label": "Pet urine issues",
       "type": "select",
       "required": true,
-      "options": ["None", "Minor odor", "Strong odor"],
+      "options": ["None", "1 room", "2 room"],
       "placeholder": "Select one"
-    },
-    {
-      "id": "preVacuum",
-      "label": "Pre-vacuuming prep",
-      "type": "select",
-      "required": true,
-      "options": ["Yes, please", "No, I will handle", "Not sure"],
-      "placeholder": "Select one",
-      "showIf": { "field": "hasCarpetCleaning", "equals": true }
     },
     {
       "id": "stainTreatment",
       "label": "Stain treatment",
       "type": "select",
       "required": true,
-      "options": ["None", "Spot treatment", "Full treatment"],
+      "options": ["None", "1-3 stains", "4-6 stains", "7-9 stains"],
       "placeholder": "Select one"
     },
     {

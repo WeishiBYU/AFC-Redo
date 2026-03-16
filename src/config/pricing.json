@@ -1,15 +1,18 @@
 {
   "currency": "$",
-  "minTotal": 250,
+  "minTotal": 280,
   "categories": [
     {
       "id": "carpet",
       "label": "Carpet Cleaning",
       "description": "Standard carpeted areas",
       "items": [
-        { "id": "bedroom", "label": "Bedroom", "unit": "room", "basePrice": 0, "minQty": 0 },
-        { "id": "living", "label": "Living Room", "unit": "room", "basePrice": 0, "minQty": 0 },
-        { "id": "hallway", "label": "Hallway", "unit": "room", "basePrice": 0, "minQty": 0 }
+        { "id": "room", "label": "Room", "unit": "room", "basePrice": 0, "minQty": 0 },
+        { "id": "large-room", "label": "Large room", "unit": "room", "basePrice": 0, "minQty": 0 },
+        { "id": "stairs", "label": "Stairs", "unit": "room", "basePrice": 0, "minQty": 0 },
+        { "id": "hallway", "label": "Hallway", "unit": "room", "basePrice": 0, "minQty": 0 },
+        { "id": "walk-in", "label": "Walk-in Closet", "unit": "room", "basePrice": 0, "minQty": 0 },
+        { "id": "rug", "label": "Rug", "unit": "rug", "basePrice": 0, "minQty": 0 }
       ]
     },
     {

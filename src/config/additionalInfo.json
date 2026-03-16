@@ -15,7 +15,7 @@
       "label": "Pre-vacuuming prep",
       "type": "select",
       "required": true,
-      "options": ["Yes, please", "No, I will handle"],
+      "options": ["Yes, please", "No, I will handle", "Not sure"],
       "placeholder": "Select one",
       "showIf": { "field": "hasCarpetCleaning", "equals": true }
     },

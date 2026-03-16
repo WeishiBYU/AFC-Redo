@@ -22,5 +22,5 @@
       ]
     }
   ],
-  "deodorizeOptions": ["none", "mild", "heavy"]
+  "deodorizeOptions": ["none", "full"]
 }

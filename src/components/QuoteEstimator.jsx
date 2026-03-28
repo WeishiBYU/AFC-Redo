@@ -515,7 +515,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
       <div className="col-lg-4">
         <QuoteSummary currency={currency} minTotal={minTotal} totals={totals} disclaimers={activeDisclaimers} />
         <div className="card mb-3">
-          <div className="card-header">Packages</div>
+          <div className="card-header">Minimum Charge Quick Checkout</div>
           <div className="card-body d-flex flex-column gap-3">
             {(packageOptions || []).length === 0 ? (
               <small className="text-muted mb-0">No packages available.</small>

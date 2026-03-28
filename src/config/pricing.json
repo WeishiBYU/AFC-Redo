@@ -28,24 +28,24 @@
   "packages": [
     {
       "id": "pkg-3-room",
-      "label": "3 Room Package",
+      "label": "3 Rooms",
       "price": 280,
-      "description": "Includes pre-vacuum and mild odor treatment. Does not include stairway or hallway.",
-      "includes": ["3 rooms", "Pre-vacuum", "Mild odor treatment"]
+      "description": "Does not include stairway or hallway. Includes:",
+      "includes": ["3 rooms (livingroom, bedroom, etc.)", "Pre-vacuum", "Mild odor treatment"]
     },
     {
       "id": "pkg-2-room-hall",
-      "label": "2 Room + Hall Special",
+      "label": "2 Room + Hall",
       "price": 280,
       "description": "Two rooms plus one hallway, with pre-vacuum and mild odor treatment. No stairway included.",
-      "includes": ["2 rooms", "1 hallway", "Pre-vacuum", "Mild odor treatment"]
+      "includes": ["2 rooms (livingroom, bedroom, etc.)", "1 hallway", "Pre-vacuum", "Mild odor treatment"]
     },
     {
       "id": "pkg-1-room-stair-hall",
       "label": "1 Room + Stair + Hall",
       "price": 280,
       "description": "One room, one stairway, and one hallway, with pre-vacuum and mild odor treatment.",
-      "includes": ["1 room", "1 stairway", "1 hallway", "Pre-vacuum", "Mild odor treatment"]
+      "includes": ["1 room (livingroom, bedroom, etc.)", "1 stairway", "1 hallway", "Pre-vacuum", "Mild odor treatment"]
     }
   ],
   "addOns": {

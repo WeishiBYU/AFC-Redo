@@ -371,6 +371,7 @@ function App() {
                 scheduling={selectedSlot}
                 yourInfo={yourInfoValues}
                 quoteSelections={quoteSelections}
+                disclaimers={combinedDisclaimers}
               />
             </div>
             <div className="col-lg-4">

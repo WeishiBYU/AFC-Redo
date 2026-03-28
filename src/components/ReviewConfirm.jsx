@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import pricingConfig from '../config/pricing.json';
 
-function ReviewConfirm({ totals, additionalInfo, scheduling, yourInfo, quoteSelections }) {
+function ReviewConfirm({ totals, additionalInfo, scheduling, yourInfo, quoteSelections, disclaimers = [] }) {
   const { categories, currency, minTotal } = pricingConfig;
   const subtotal = totals?.subtotal ?? 0;
   const enforcedTotal = totals?.enforcedTotal ?? Math.max(subtotal, minTotal);
@@ -97,6 +97,19 @@ function ReviewConfirm({ totals, additionalInfo, scheduling, yourInfo, quoteSele
             <small className="text-muted">Add {fmt(minTotal - subtotal)} to reach the minimum.</small>
           ) : null}
         </div>
+
+        {Array.isArray(disclaimers) && disclaimers.length > 0 ? (
+          <div className="mt-4">
+            <div className="fw-semibold mb-2">Disclaimers</div>
+            <div className="d-flex flex-column gap-2">
+              {disclaimers.map((d) => (
+                <div key={d.id || d.label} className="alert alert-warning p-2 small mb-0">
+                  <strong>{d.label}:</strong> {d.message}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

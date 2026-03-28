@@ -25,6 +25,24 @@
       ]
     }
   ],
+  "packages": [
+    {
+      "id": "quick-3",
+      "label": "Quick 3 Rooms",
+      "price": 189,
+      "description": "Fast checkout for three standard rooms plus a hallway.",
+      "includes": ["3 standard rooms", "1 hallway"],
+      "disclaimer": "Selecting a package disables individual carpet selections."
+    },
+    {
+      "id": "whole-home",
+      "label": "Whole Home",
+      "price": 299,
+      "description": "Up to five rooms and one hallway, bundled for convenience.",
+      "includes": ["Up to 5 rooms", "1 hallway", "Standard deodorize"],
+      "disclaimer": "Package replaces carpet a la carte selections."
+    }
+  ],
   "deodorizeOptions": [
     { "value": "none", "label": "None" },
     { "value": "mild", "label": "Mild", "disclaimer": "We will try our best to reduce odors, but deep or old odors may remain after treatment." },

@@ -12,7 +12,7 @@ function formatCurrency(symbol, amount) {
 }
 
 function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTotalsChange, onValidityChange, onDisclaimersChange }) {
-  const { currency, minTotal, categories, deodorizeOptions } = pricingConfig;
+  const { currency, minTotal, categories, deodorizeOptions, packages: packageOptions = [] } = pricingConfig;
   const normalizedDeodorizeOptions = useMemo(() => {
     return (deodorizeOptions || []).map((opt) => {
       if (typeof opt === 'string') return { value: opt, label: opt, disclaimer: null };
@@ -22,13 +22,24 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
   }, [deodorizeOptions]);
   const deodorizeMap = useMemo(() => new Map(normalizedDeodorizeOptions.map((opt) => [opt.value, opt])), [normalizedDeodorizeOptions]);
   const defaultDeodorize = normalizedDeodorizeOptions[0]?.value || 'none';
+  const carpetItemIds = useMemo(() => {
+    const carpetCat = categories.find((c) => c.id === 'carpet');
+    return new Set((carpetCat?.items || []).map((i) => i.id));
+  }, [categories]);
+  const [selectedPackageId, setSelectedPackageId] = useState(null);
   const [localSelections, setLocalSelections] = useState(() => selectionsProp || {});
   const [qtyInputs, setQtyInputs] = useState({});
 
   const selections = selectionsProp ?? localSelections;
   const setSelections = onSelectionsChange ?? setLocalSelections;
+  const selectedPackage = useMemo(
+    () => (packageOptions || []).find((p) => p.id === selectedPackageId) || null,
+    [packageOptions, selectedPackageId]
+  );
+  const carpetLocked = Boolean(selectedPackage);
 
   const handleQtyChange = (itemId, delta) => {
+    if (carpetLocked && carpetItemIds.has(itemId)) return;
     setSelections((prev) => {
       const current = prev[itemId] || { qty: 0, protect: false, deodorize: defaultDeodorize };
       const nextQty = clamp((current.qty || 0) + delta, 0);
@@ -38,6 +49,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
   };
 
   const handleQtyInput = (itemId, value) => {
+    if (carpetLocked && carpetItemIds.has(itemId)) return;
     const parsed = Number.parseInt(value, 10);
     setQtyInputs((prev) => ({ ...prev, [itemId]: value }));
     setSelections((prev) => {
@@ -48,10 +60,12 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
   };
 
   const handleQtyFocus = (itemId) => {
+    if (carpetLocked && carpetItemIds.has(itemId)) return;
     setQtyInputs((prev) => ({ ...prev, [itemId]: '' }));
   };
 
   const handleQtyBlur = (itemId) => {
+    if (carpetLocked && carpetItemIds.has(itemId)) return;
     setQtyInputs((prev) => {
       const raw = prev[itemId];
       if (raw === undefined || raw === '') {
@@ -69,6 +83,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
   };
 
   const handleProtectToggle = (itemId, enabled) => {
+    if (carpetLocked && carpetItemIds.has(itemId)) return;
     setSelections((prev) => {
       const current = prev[itemId] || { qty: 0, protect: false, deodorize: defaultDeodorize };
       return { ...prev, [itemId]: { ...current, protect: enabled && (current.qty > 0) } };
@@ -76,6 +91,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
   };
 
   const handleDeodorize = (itemId, value) => {
+    if (carpetLocked && carpetItemIds.has(itemId)) return;
     setSelections((prev) => {
       const current = prev[itemId] || { qty: 0, protect: false, deodorize: defaultDeodorize };
       const safeValue = deodorizeMap.has(value) ? value : defaultDeodorize;
@@ -83,9 +99,40 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
     });
   };
 
+  const handlePackageSelect = (pkgId) => {
+    setSelectedPackageId(pkgId || null);
+    if (pkgId) {
+      setSelections((prev) => {
+        const next = { ...prev };
+        carpetItemIds.forEach((id) => {
+          next[id] = { qty: 0, protect: false, deodorize: defaultDeodorize };
+        });
+        return next;
+      });
+      setQtyInputs((prev) => {
+        const next = { ...prev };
+        carpetItemIds.forEach((id) => {
+          next[id] = '0';
+        });
+        return next;
+      });
+    }
+  };
+
   const totals = useMemo(() => {
     let subtotal = 0;
     const lines = [];
+    if (selectedPackage) {
+      subtotal += selectedPackage.price || 0;
+      lines.push({
+        id: `package-${selectedPackage.id}`,
+        label: selectedPackage.label,
+        qty: 1,
+        unitPrice: selectedPackage.price || 0,
+        linePrice: selectedPackage.price || 0,
+        isPackage: true,
+      });
+    }
     categories.forEach((cat) => {
       cat.items.forEach((item) => {
         const sel = selections[item.id];
@@ -107,10 +154,13 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
     });
     const enforcedTotal = Math.max(subtotal, minTotal);
     return { subtotal, enforcedTotal, lines };
-  }, [categories, minTotal, selections]);
+  }, [categories, minTotal, selections, selectedPackage]);
 
   const activeDisclaimers = useMemo(() => {
     const result = [];
+    if (selectedPackage?.disclaimer) {
+      result.push({ id: `package-${selectedPackage.id}`, label: selectedPackage.label, message: selectedPackage.disclaimer });
+    }
     categories.forEach((cat) => {
       cat.items.forEach((item) => {
         const sel = selections[item.id];
@@ -125,7 +175,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
       });
     });
     return result;
-  }, [categories, selections, deodorizeMap]);
+  }, [categories, selections, deodorizeMap, selectedPackage]);
 
   useEffect(() => {
     if (onTotalsChange) {
@@ -139,6 +189,25 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
   useEffect(() => {
     if (onDisclaimersChange) onDisclaimersChange(activeDisclaimers);
   }, [activeDisclaimers, onDisclaimersChange]);
+
+  useEffect(() => {
+    if (!selectedPackage) return;
+    // Ensure carpet lines stay zeroed while a package is active.
+    setSelections((prev) => {
+      const next = { ...prev };
+      carpetItemIds.forEach((id) => {
+        next[id] = { qty: 0, protect: false, deodorize: defaultDeodorize };
+      });
+      return next;
+    });
+    setQtyInputs((prev) => {
+      const next = { ...prev };
+      carpetItemIds.forEach((id) => {
+        next[id] = '0';
+      });
+      return next;
+    });
+  }, [selectedPackage, carpetItemIds, defaultDeodorize, setSelections]);
 
   return (
     <>
@@ -187,6 +256,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                           const displayQty = qtyInputs[item.id] ?? String(sel.qty ?? 0);
                           const itemDisclaimerActive = item.disclaimer && sel.qty > 0;
                           const deodorizeDisclaimerActive = sel.qty > 0 && deodorizeOpt?.disclaimer;
+                          const itemLocked = carpetLocked && carpetItemIds.has(item.id);
                           return (
                             <tr key={item.id}>
                               <td>
@@ -203,17 +273,18 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                               </td>
                               <td className="text-center" style={{ minWidth: '130px' }}>
                                 <div className="input-group input-group-sm justify-content-center" style={{ maxWidth: '150px', margin: '0 auto' }}>
-                                  <button className="btn btn-outline-secondary" type="button" onClick={() => handleQtyChange(item.id, -1)}>-</button>
+                                  <button className="btn btn-outline-secondary" type="button" disabled={itemLocked} onClick={() => handleQtyChange(item.id, -1)}>-</button>
                                   <input
                                     type="number"
                                     className="form-control text-center"
                                     min="0"
                                     value={displayQty}
+                                    disabled={itemLocked}
                                     onChange={(e) => handleQtyInput(item.id, e.target.value)}
                                     onFocus={() => handleQtyFocus(item.id)}
                                     onBlur={() => handleQtyBlur(item.id)}
                                   />
-                                  <button className="btn btn-outline-secondary" type="button" onClick={() => handleQtyChange(item.id, 1)}>+</button>
+                                  <button className="btn btn-outline-secondary" type="button" disabled={itemLocked} onClick={() => handleQtyChange(item.id, 1)}>+</button>
                                 </div>
                               </td>
                               <td className="text-center">
@@ -223,7 +294,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                     type="checkbox"
                                     role="switch"
                                     checked={sel.protect && sel.qty > 0}
-                                    disabled={sel.qty === 0}
+                                    disabled={sel.qty === 0 || itemLocked}
                                     onChange={(e) => handleProtectToggle(item.id, e.target.checked)}
                                   />
                                 </div>
@@ -233,7 +304,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                   <select
                                     className="form-select form-select-sm"
                                     value={sel.deodorize}
-                                    disabled={sel.qty === 0}
+                                    disabled={sel.qty === 0 || itemLocked}
                                     onChange={(e) => handleDeodorize(item.id, e.target.value)}
                                   >
                                     {normalizedDeodorizeOptions.map((opt) => (
@@ -262,6 +333,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                       const displayQty = qtyInputs[item.id] ?? String(sel.qty ?? 0);
                       const itemDisclaimerActive = item.disclaimer && sel.qty > 0;
                       const deodorizeDisclaimerActive = sel.qty > 0 && deodorizeOpt?.disclaimer;
+                      const itemLocked = carpetLocked && carpetItemIds.has(item.id);
                       return (
                         <div className="accordion" key={`m-${item.id}`} id={`acc-${cat.id}-${item.id}`}>
                           <div className="accordion-item">
@@ -300,17 +372,18 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                 <div className="mb-3">
                                   <label className="form-label">Quantity</label>
                                   <div className="input-group input-group-sm">
-                                    <button className="btn btn-outline-secondary" type="button" onClick={() => handleQtyChange(item.id, -1)}>-</button>
+                                    <button className="btn btn-outline-secondary" type="button" disabled={itemLocked} onClick={() => handleQtyChange(item.id, -1)}>-</button>
                                     <input
                                       type="number"
                                       className="form-control text-center"
                                       min="0"
                                       value={displayQty}
+                                      disabled={itemLocked}
                                       onChange={(e) => handleQtyInput(item.id, e.target.value)}
                                       onFocus={() => handleQtyFocus(item.id)}
                                       onBlur={() => handleQtyBlur(item.id)}
                                     />
-                                    <button className="btn btn-outline-secondary" type="button" onClick={() => handleQtyChange(item.id, 1)}>+</button>
+                                    <button className="btn btn-outline-secondary" type="button" disabled={itemLocked} onClick={() => handleQtyChange(item.id, 1)}>+</button>
                                   </div>
                                 </div>
                                 <div className="mb-3">
@@ -320,7 +393,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                       type="checkbox"
                                       role="switch"
                                       checked={sel.protect && sel.qty > 0}
-                                      disabled={sel.qty === 0}
+                                      disabled={sel.qty === 0 || itemLocked}
                                       onChange={(e) => handleProtectToggle(item.id, e.target.checked)}
                                     />
                                     <label className="form-check-label">Protect</label>
@@ -332,7 +405,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                     <select
                                       className="form-select form-select-sm"
                                       value={sel.deodorize}
-                                      disabled={sel.qty === 0}
+                                      disabled={sel.qty === 0 || itemLocked}
                                       onChange={(e) => handleDeodorize(item.id, e.target.value)}
                                     >
                                       {normalizedDeodorizeOptions.map((opt) => (
@@ -362,6 +435,49 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
 
       <div className="col-lg-4">
         <QuoteSummary currency={currency} minTotal={minTotal} totals={totals} disclaimers={activeDisclaimers} />
+        <div className="card mb-3">
+          <div className="card-header">Packages</div>
+          <div className="card-body d-flex flex-column gap-3">
+            {(packageOptions || []).length === 0 ? (
+              <small className="text-muted mb-0">No packages available.</small>
+            ) : (
+              <>
+                {(packageOptions || []).map((pkg) => (
+                  <div key={pkg.id} className={`border rounded p-3 ${selectedPackageId === pkg.id ? 'border-primary' : 'border-light'}`}>
+                    <div className="d-flex justify-content-between align-items-start gap-2">
+                      <div>
+                        <div className="fw-semibold mb-1">{pkg.label}</div>
+                        {pkg.description ? <div className="text-muted small">{pkg.description}</div> : null}
+                        {Array.isArray(pkg.includes) && pkg.includes.length > 0 ? (
+                          <ul className="small mb-0 mt-2 ps-3">
+                            {pkg.includes.map((inc, idx) => (
+                              <li key={idx}>{inc}</li>
+                            ))}
+                          </ul>
+                        ) : null}
+                        {pkg.disclaimer && selectedPackageId === pkg.id ? (
+                          <div className="alert alert-warning p-2 small mb-0 mt-2">
+                            <strong>Disclaimer:</strong> {pkg.disclaimer}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="text-end">
+                        <div className="fw-semibold">{formatCurrency(currency, pkg.price || 0)}</div>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary mt-2"
+                          onClick={() => handlePackageSelect(selectedPackageId === pkg.id ? null : pkg.id)}
+                        >
+                          {selectedPackageId === pkg.id ? 'Selected (click to clear)' : 'Select'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
     </>

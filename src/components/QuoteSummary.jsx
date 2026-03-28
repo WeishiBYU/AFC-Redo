@@ -9,6 +9,10 @@ function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
   const lines = totals?.lines || [];
   const subtotal = totals?.subtotal ?? 0;
   const enforcedTotal = totals?.enforcedTotal ?? Math.max(subtotal, minTotal);
+  const minApplied = subtotal < minTotal;
+  const totalLabel = minApplied
+    ? `Total (minimum ${formatCurrency(currency, minTotal)} applied)`
+    : 'Total';
 
   return (
     <>
@@ -35,15 +39,11 @@ function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
               </ul>
             )}
             <div className="d-flex justify-content-between fw-semibold">
-              <span>Subtotal</span>
-              <span>{formatCurrency(currency, subtotal)}</span>
-            </div>
-            <div className="d-flex justify-content-between fw-semibold mt-2">
-              <span>Total (min ${minTotal})</span>
+              <span>{totalLabel}</span>
               <span>{formatCurrency(currency, enforcedTotal)}</span>
             </div>
-            {subtotal < minTotal ? (
-              <small className="text-muted">Minimum applies; add {formatCurrency(currency, minTotal - subtotal)} to reach ${minTotal}.</small>
+            {minApplied ? (
+              <small className="text-muted">Add {formatCurrency(currency, minTotal - subtotal)} to reach the minimum.</small>
             ) : null}
             {disclaimers.length > 0 ? (
               <div className="mt-3">
@@ -69,12 +69,10 @@ function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
         >
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <div className="fw-semibold mb-0">Total</div>
-              <small className="text-muted">
-                {subtotal < minTotal
-                  ? `Minimum ${currency}${minTotal.toFixed(2)} applies`
-                  : 'Estimate'}
-              </small>
+                  <div className="fw-semibold mb-0">{totalLabel}</div>
+                  <small className="text-muted">
+                    {minApplied ? `Minimum applies` : 'Estimate'}
+                  </small>
             </div>
             <div className="text-end">
               <div className="fs-5 fw-semibold">
@@ -115,15 +113,11 @@ function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
                 </ul>
               )}
               <div className="d-flex justify-content-between fw-semibold">
-                <span>Subtotal</span>
-                <span>{formatCurrency(currency, subtotal)}</span>
-              </div>
-              <div className="d-flex justify-content-between fw-semibold mt-2">
-                <span>Total (min ${minTotal})</span>
+                <span>{totalLabel}</span>
                 <span>{formatCurrency(currency, enforcedTotal)}</span>
               </div>
-              {subtotal < minTotal ? (
-                <small className="text-muted">Minimum applies; add {formatCurrency(currency, minTotal - subtotal)} to reach ${minTotal}.</small>
+              {minApplied ? (
+                <small className="text-muted">Add {formatCurrency(currency, minTotal - subtotal)} to reach the minimum.</small>
               ) : null}
               {disclaimers.length > 0 ? (
                 <div className="mt-3">

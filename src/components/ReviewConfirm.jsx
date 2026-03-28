@@ -3,6 +3,9 @@ import pricingConfig from '../config/pricing.json';
 
 function ReviewConfirm({ totals, additionalInfo, scheduling, yourInfo, quoteSelections }) {
   const { categories, currency, minTotal } = pricingConfig;
+  const subtotal = totals?.subtotal ?? 0;
+  const enforcedTotal = totals?.enforcedTotal ?? Math.max(subtotal, minTotal);
+  const minApplied = subtotal < minTotal;
 
   const serviceLines = useMemo(() => {
     const lines = [];
@@ -27,6 +30,7 @@ function ReviewConfirm({ totals, additionalInfo, scheduling, yourInfo, quoteSele
   }, [categories, quoteSelections]);
 
   const fmt = (n) => `${currency}${(n ?? 0).toFixed(2)}`;
+  const totalLabel = minApplied ? `Total (minimum ${fmt(minTotal)} applied)` : 'Total';
 
   const renderInfoList = (obj) => {
     if (!obj) return <p className="text-muted mb-0">No details provided.</p>;
@@ -86,13 +90,12 @@ function ReviewConfirm({ totals, additionalInfo, scheduling, yourInfo, quoteSele
 
         <div className="mt-4">
           <div className="d-flex justify-content-between fw-semibold">
-            <span>Subtotal</span>
-            <span>{fmt(totals?.subtotal || 0)}</span>
+            <span>{totalLabel}</span>
+            <span>{fmt(enforcedTotal)}</span>
           </div>
-          <div className="d-flex justify-content-between fw-semibold mt-1">
-            <span>Total (min ${minTotal})</span>
-            <span>{fmt(totals?.enforcedTotal || 0)}</span>
-          </div>
+          {minApplied ? (
+            <small className="text-muted">Add {fmt(minTotal - subtotal)} to reach the minimum.</small>
+          ) : null}
         </div>
       </div>
     </div>

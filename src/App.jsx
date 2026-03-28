@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import QuoteEstimator from './components/QuoteEstimator.jsx';
 import AdditionalInformation from './components/AdditionalInformation.jsx';
 import QuoteSummary from './components/QuoteSummary.jsx';
@@ -20,6 +20,16 @@ function App() {
   const [schedulingValid, setSchedulingValid] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [showErrors, setShowErrors] = useState(false);
+  const [quoteDisclaimers, setQuoteDisclaimers] = useState([]);
+  const [additionalDisclaimers, setAdditionalDisclaimers] = useState([]);
+
+  const combinedDisclaimers = useMemo(() => {
+    const byId = new Map();
+    [...quoteDisclaimers, ...additionalDisclaimers].forEach((d) => {
+      if (d?.id) byId.set(d.id, d);
+    });
+    return Array.from(byId.values());
+  }, [quoteDisclaimers, additionalDisclaimers]);
 
   const goNext = () => {
     if (step === 1 && !quoteValid) {
@@ -62,6 +72,7 @@ function App() {
             onSelectionsChange={setQuoteSelections}
             onTotalsChange={setTotals}
             onValidityChange={setQuoteValid}
+            onDisclaimersChange={setQuoteDisclaimers}
             showErrors={showErrors}
           />
           {errorMsg ? (
@@ -87,11 +98,12 @@ function App() {
                 value={additionalInfo}
                 onChange={setAdditionalInfo}
                 onValidityChange={setAdditionalValid}
+                onDisclaimersChange={setAdditionalDisclaimers}
                 showErrors={showErrors}
               />
             </div>
             <div className="col-lg-4">
-              <QuoteSummary currency={pricingConfig.currency} minTotal={pricingConfig.minTotal} totals={totals} />
+              <QuoteSummary currency={pricingConfig.currency} minTotal={pricingConfig.minTotal} totals={totals} disclaimers={combinedDisclaimers} />
             </div>
           </div>
           {errorMsg ? (
@@ -123,7 +135,7 @@ function App() {
               />
             </div>
             <div className="col-lg-4">
-              <QuoteSummary currency={pricingConfig.currency} minTotal={pricingConfig.minTotal} totals={totals} />
+              <QuoteSummary currency={pricingConfig.currency} minTotal={pricingConfig.minTotal} totals={totals} disclaimers={combinedDisclaimers} />
             </div>
           </div>
           {errorMsg ? (
@@ -155,7 +167,7 @@ function App() {
               />
             </div>
             <div className="col-lg-4">
-              <QuoteSummary currency={pricingConfig.currency} minTotal={pricingConfig.minTotal} totals={totals} />
+              <QuoteSummary currency={pricingConfig.currency} minTotal={pricingConfig.minTotal} totals={totals} disclaimers={combinedDisclaimers} />
             </div>
           </div>
           {errorMsg ? (
@@ -188,7 +200,7 @@ function App() {
               />
             </div>
             <div className="col-lg-4">
-              <QuoteSummary currency={pricingConfig.currency} minTotal={pricingConfig.minTotal} totals={totals} />
+              <QuoteSummary currency={pricingConfig.currency} minTotal={pricingConfig.minTotal} totals={totals} disclaimers={combinedDisclaimers} />
             </div>
           </div>
           {errorMsg ? (

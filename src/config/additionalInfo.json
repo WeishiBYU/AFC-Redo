@@ -7,40 +7,66 @@
     "label": "Pre-vacuuming",
     "type": "select",
     "required": true,
-    "options": ["Yes, please", "No, I will handle", "Not sure"],
+    "options": [
+      { "value": "Yes, please", "label": "Yes, please" },
+      { "value": "No, I will handle", "label": "No, I will handle", "disclaimer": "Please vacuum thoroughly before our crew arrives to avoid rescheduling." },
+      { "value": "Not sure", "label": "Not sure" }
+    ],
     "placeholder": "Select one",
-    "showIf": { "field": "hasCarpetCleaning", "equals": true }
+    "showIf": { "field": "hasCarpetCleaning", "equals": true },
+    "info": "We bring commercial vacuums; skip this if you already plan to vacuum."
     },
     {
       "id": "petUrine",
       "label": "Pet urine spots",
       "type": "select",
       "required": true,
-      "options": ["None", "1 spot", "1 room", "2 rooms", "3 rooms", "4 or more rooms"],
-      "placeholder": "Select one"
+      "options": [
+        { "value": "None", "label": "None" },
+        { "value": "1 spot", "label": "1 spot" },
+        { "value": "1 room", "label": "1 room" },
+        { "value": "2 rooms", "label": "2 rooms" },
+        { "value": "3 rooms", "label": "3 rooms" },
+        { "value": "4 or more rooms", "label": "4 or more rooms", "disclaimer": "Heavy urine jobs may need UV inspection and could change the estimate on site." }
+      ],
+      "placeholder": "Select one",
+      "info": "Helps us pack the right neutralizers and UV tools."
     },
     {
       "id": "stainTreatmentDark",
       "label": "Dark stain treatment (coffee, greese, dirt)",
       "type": "select",
       "required": true,
-      "options": ["None", "1-4 stains", "5-9 stains", "10+ stains"],
-      "placeholder": "Select one"
+      "options": [
+        { "value": "None", "label": "None" },
+        { "value": "1-4 stains", "label": "1-4 stains" },
+        { "value": "5-9 stains", "label": "5-9 stains" },
+        { "value": "10+ stains", "label": "10+ stains", "disclaimer": "Extensive spotting may require extra dwell time and a follow-up visit." }
+      ],
+      "placeholder": "Select one",
+      "info": "Dark stains often need agitation and dwell time."
     },
     {
       "id": "stainTreatmentColorful",
       "label": "Colorful stain treatment (drinks, markers, ink)",
       "type": "select",
       "required": true,
-      "options": ["None", "1-3 stains", "4-6 stains", "7+ (to be quoted)"],
-      "placeholder": "Select one"
+      "options": [
+        { "value": "None", "label": "None" },
+        { "value": "1-3 stains", "label": "1-3 stains" },
+        { "value": "4-6 stains", "label": "4-6 stains" },
+        { "value": "7+ (to be quoted)", "label": "7+ (to be quoted)", "disclaimer": "Color-transfer stains over 6 spots may need a site quote and cannot be guaranteed." }
+      ],
+      "placeholder": "Select one",
+      "info": "Bright dyes sometimes need specialty spotting - estimate may adjust."
     },
     {
       "id": "specialInstructions",
       "label": "Special instructions or additional details",
       "type": "textarea",
       "required": false,
-      "placeholder": "Optional helpful notes (stains, urine areas, pet problem areas, or access)"
+      "placeholder": "Optional helpful notes (stains, urine areas, pet problem areas, or access)",
+      "info": "Share anything unique so we prep solutions, pads, or PPE."
     }
   ]
 }

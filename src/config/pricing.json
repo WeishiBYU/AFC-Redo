@@ -7,12 +7,12 @@
       "label": "Carpet Cleaning",
       "description": "Standard carpeted areas",
       "items": [
-        { "id": "room", "label": "Room", "unit": "bedroom, livingroom, office, etc", "basePrice": 0, "minQty": 0 },
-        { "id": "large-room", "label": "Large Room", "unit": "room (over 15x15 Sq ft)", "basePrice": 0, "minQty": 0 },
-        { "id": "stairway", "label": "Stairway", "unit": "stairway (20 steps or less)", "basePrice": 0, "minQty": 0 },
-        { "id": "hallway", "label": "Hallway", "unit": "hallway", "basePrice": 0, "minQty": 0 },
-        { "id": "walk-in", "label": "Walk-in Closet", "unit": "closet", "basePrice": 0, "minQty": 0 },
-        { "id": "rug", "label": "Rug", "unit": "rug", "basePrice": 0, "minQty": 0 }
+        { "id": "room", "label": "Room", "unit": "bedroom, livingroom, office, etc", "basePrice": 0, "minQty": 0, "info": "Typical bedroom or office up to ~150 sq ft." },
+        { "id": "large-room", "label": "Large Room", "unit": "room (over 15x15 Sq ft)", "basePrice": 0, "minQty": 0, "info": "Great for family rooms or basements over 225 sq ft." },
+        { "id": "stairway", "label": "Stairway", "unit": "stairway (20 steps or less)", "basePrice": 0, "minQty": 0, "info": "Includes treads and risers; add another for long runs.", "disclaimer": "Stairways may stay damp longer; use caution when walking until dry." },
+        { "id": "hallway", "label": "Hallway", "unit": "hallway", "basePrice": 0, "minQty": 0, "info": "Count each connecting hallway once." },
+        { "id": "walk-in", "label": "Walk-in Closet", "unit": "closet", "basePrice": 0, "minQty": 0, "info": "Walk-ins attached to serviced rooms." },
+        { "id": "rug", "label": "Rug", "unit": "rug", "basePrice": 0, "minQty": 0, "info": "In-home cleaning for area rugs (not woven silk).", "disclaimer": "Delicate or loose-back rugs may require off-site cleaning and could incur an adjusted quote." }
       ]
     },
     {
@@ -20,8 +20,8 @@
       "label": "Upholstery Cleaning",
       "description": "Sofas, chairs, sectionals",
       "items": [
-        { "id": "sofa", "label": "Sofa", "unit": "piece", "basePrice": 0, "minQty": 0 },
-        { "id": "chair", "label": "Chair", "unit": "piece", "basePrice": 0, "minQty": 0 }
+        { "id": "sofa", "label": "Sofa", "unit": "piece", "basePrice": 0, "minQty": 0, "info": "Standard 3-seat sofa; add another for sectionals." },
+        { "id": "chair", "label": "Chair", "unit": "piece", "basePrice": 0, "minQty": 0, "info": "Accent or dining chair upholstery." }
       ]
     }
   ],

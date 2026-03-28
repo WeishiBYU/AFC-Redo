@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import config from '../config/yourInfo.json';
+import InfoPopover from './InfoPopover.jsx';
 
 function YourInformation({ value, onChange, onValidityChange, showErrors = false }) {
   const { title, description, fields } = config;
@@ -116,7 +117,10 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
     if (f.type === 'select') {
       return (
         <div className="col-12" key={f.id}>
-          <label className="form-label mb-1">{f.label}{requiredMark}</label>
+          <label className="form-label mb-1 d-flex align-items-center gap-2">
+            <span>{f.label}{requiredMark}</span>
+            {f.info ? <InfoPopover content={f.info} label={`More about ${f.label}`} /> : null}
+          </label>
           <select
             className={`form-select ${isInvalid ? 'is-invalid' : ''}`}
             required={f.required}
@@ -142,7 +146,10 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
     if (f.type === 'textarea') {
       return (
         <div className="col-12" key={f.id}>
-          <label className="form-label mb-1">{f.label}{requiredMark}</label>
+          <label className="form-label mb-1 d-flex align-items-center gap-2">
+            <span>{f.label}{requiredMark}</span>
+            {f.info ? <InfoPopover content={f.info} label={`More about ${f.label}`} /> : null}
+          </label>
           <textarea
             className={`form-control ${isInvalid ? 'is-invalid' : ''}`}
             rows="3"
@@ -164,7 +171,10 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
 
     return (
       <div className="col-md-6" key={f.id}>
-        <label className="form-label mb-1">{f.label}{requiredMark}</label>
+        <label className="form-label mb-1 d-flex align-items-center gap-2">
+          <span>{f.label}{requiredMark}</span>
+          {f.info ? <InfoPopover content={f.info} label={`More about ${f.label}`} /> : null}
+        </label>
         <input
           type={f.type || 'text'}
           className={`form-control ${isInvalid ? 'is-invalid' : ''}`}

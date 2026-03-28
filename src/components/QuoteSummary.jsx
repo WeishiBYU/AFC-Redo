@@ -4,7 +4,7 @@ function formatCurrency(symbol, amount) {
   return `${symbol}${amount.toFixed(2)}`;
 }
 
-function QuoteSummary({ currency, minTotal, totals }) {
+function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const lines = totals?.lines || [];
   const subtotal = totals?.subtotal ?? 0;
@@ -44,6 +44,22 @@ function QuoteSummary({ currency, minTotal, totals }) {
             </div>
             {subtotal < minTotal ? (
               <small className="text-muted">Minimum applies; add {formatCurrency(currency, minTotal - subtotal)} to reach ${minTotal}.</small>
+            ) : null}
+            {disclaimers.length > 0 ? (
+              <div className="mt-3">
+                <div className="d-flex align-items-center gap-2 mb-2">
+                  <span className="rounded-1 d-inline-flex align-items-center justify-content-center" style={{ width: '1.25rem', height: '1.25rem', backgroundColor: '#ffc107', color: '#212529', fontWeight: 700, fontSize: '0.85rem' }}>!</span>
+                  <span className="fw-semibold">Disclaimers</span>
+                </div>
+                <ul className="list-unstyled small mb-0">
+                  {disclaimers.map((d) => (
+                    <li key={d.id} className="d-flex align-items-start gap-2 mb-1">
+                      <span className="rounded-1 d-inline-flex align-items-center justify-content-center" style={{ width: '1rem', height: '1rem', backgroundColor: '#ffc107', color: '#212529', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>!</span>
+                      <span><strong>{d.label}:</strong> {d.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
           </div>
         </div>
@@ -112,6 +128,22 @@ function QuoteSummary({ currency, minTotal, totals }) {
               </div>
               {subtotal < minTotal ? (
                 <small className="text-muted">Minimum applies; add {formatCurrency(currency, minTotal - subtotal)} to reach ${minTotal}.</small>
+              ) : null}
+              {disclaimers.length > 0 ? (
+                <div className="mt-3">
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <span className="rounded-1 d-inline-flex align-items-center justify-content-center" style={{ width: '1.25rem', height: '1.25rem', backgroundColor: '#ffc107', color: '#212529', fontWeight: 700, fontSize: '0.85rem' }}>!</span>
+                    <span className="fw-semibold">Disclaimers</span>
+                  </div>
+                  <ul className="list-unstyled small mb-0">
+                    {disclaimers.map((d) => (
+                      <li key={d.id} className="d-flex align-items-start gap-2 mb-1">
+                        <span className="rounded-1 d-inline-flex align-items-center justify-content-center" style={{ width: '1rem', height: '1rem', backgroundColor: '#ffc107', color: '#212529', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>!</span>
+                        <span><strong>{d.label}:</strong> {d.message}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ) : null}
             </div>
           </div>

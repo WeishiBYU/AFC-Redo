@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import pricingConfig from '../config/pricing.json';
 import QuoteSummary from './QuoteSummary.jsx';
+import InfoPopover from './InfoPopover.jsx';
+import DisclaimerPopover from './DisclaimerPopover.jsx';
 
 function clamp(value, min) {
   return value < min ? min : value;
@@ -10,7 +12,7 @@ function formatCurrency(symbol, amount) {
   return `${symbol}${amount.toFixed(2)}`;
 }
 
-function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTotalsChange, onValidityChange }) {
+function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTotalsChange, onValidityChange, onDisclaimersChange }) {
   const { currency, minTotal, categories, deodorizeOptions } = pricingConfig;
   const [localSelections, setLocalSelections] = useState(() => selectionsProp || {});
   const [qtyInputs, setQtyInputs] = useState({});
@@ -98,6 +100,20 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
     return { subtotal, enforcedTotal, lines };
   }, [categories, minTotal, selections]);
 
+  const activeDisclaimers = useMemo(() => {
+    const result = [];
+    categories.forEach((cat) => {
+      cat.items.forEach((item) => {
+        const sel = selections[item.id];
+        const qty = sel?.qty || 0;
+        if (item.disclaimer && qty > 0) {
+          result.push({ id: `service-${item.id}`, label: item.label, message: item.disclaimer });
+        }
+      });
+    });
+    return result;
+  }, [categories, selections]);
+
   useEffect(() => {
     if (onTotalsChange) {
       onTotalsChange({ ...totals, currency, minTotal });
@@ -106,6 +122,10 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
       onValidityChange(totals.lines.length > 0);
     }
   }, [totals, onTotalsChange, onValidityChange, currency, minTotal]);
+
+  useEffect(() => {
+    if (onDisclaimersChange) onDisclaimersChange(activeDisclaimers);
+  }, [activeDisclaimers, onDisclaimersChange]);
 
   return (
     <>
@@ -154,7 +174,11 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                           return (
                             <tr key={item.id}>
                               <td>
-                                <div className="fw-semibold">{item.label}</div>
+                                <div className="d-flex align-items-center gap-2 flex-wrap">
+                                  <div className="fw-semibold mb-0">{item.label}</div>
+                                  {item.info ? <InfoPopover content={item.info} label={`More about ${item.label}`} /> : null}
+                                  {item.disclaimer && sel.qty > 0 ? <DisclaimerPopover content={item.disclaimer} label={`${item.label} disclaimer`} /> : null}
+                                </div>
                                 {item.unit ? <small className="text-muted">Per {item.unit}</small> : null}
                               </td>
                               <td className="text-center">
@@ -221,7 +245,11 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                 aria-controls={`m-collapse-${item.id}`}
                               >
                                 <div className="d-flex flex-column w-100">
-                                  <span>{item.label}</span>
+                                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                                    <span>{item.label}</span>
+                                    {item.info ? <InfoPopover content={item.info} label={`More about ${item.label}`} /> : null}
+                                    {item.disclaimer && sel.qty > 0 ? <DisclaimerPopover content={item.disclaimer} label={`${item.label} disclaimer`} /> : null}
+                                  </div>
                                   {item.unit ? <small className="text-muted">Per {item.unit}</small> : null}
                                 </div>
                                 <div className="ms-auto text-end">
@@ -292,7 +320,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
       </div>
 
       <div className="col-lg-4">
-        <QuoteSummary currency={currency} minTotal={minTotal} totals={totals} />
+        <QuoteSummary currency={currency} minTotal={minTotal} totals={totals} disclaimers={activeDisclaimers} />
       </div>
     </div>
     </>

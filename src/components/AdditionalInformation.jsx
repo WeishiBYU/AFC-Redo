@@ -1,12 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import additionalInfoConfig from '../config/additionalInfo.json';
+import InfoPopover from './InfoPopover.jsx';
+import DisclaimerPopover from './DisclaimerPopover.jsx';
 
-function AdditionalInformation({ context = {}, value, onChange, onValidityChange, showErrors = false }) {
+function AdditionalInformation({ context = {}, value, onChange, onValidityChange, onDisclaimersChange, showErrors = false }) {
   const { title, description, questions } = additionalInfoConfig;
+
+  const normalizedQuestions = useMemo(() => {
+    const normalizeOption = (opt) => {
+      if (typeof opt === 'string') return { value: opt, label: opt, disclaimer: null };
+      const value = opt.value ?? opt.label ?? '';
+      return { value, label: opt.label ?? value, disclaimer: opt.disclaimer || null };
+    };
+    return questions.map((q) => ({
+      ...q,
+      options: (q.options || []).map(normalizeOption),
+    }));
+  }, [questions]);
   const [answers, setAnswers] = useState(() => {
     if (value) return value;
     const seed = {};
-    questions.forEach((q) => {
+    normalizedQuestions.forEach((q) => {
       seed[q.id] = '';
     });
     return seed;
@@ -17,12 +31,12 @@ function AdditionalInformation({ context = {}, value, onChange, onValidityChange
   }, [value]);
 
   const visibleQuestions = useMemo(() => {
-    return questions.filter((q) => {
+    return normalizedQuestions.filter((q) => {
       if (!q.showIf) return true;
       const { field, equals } = q.showIf;
       return context[field] === equals;
     });
-  }, [context, questions]);
+  }, [context, normalizedQuestions]);
 
   const isValid = useMemo(() => {
     return visibleQuestions.every((q) => {
@@ -39,9 +53,25 @@ function AdditionalInformation({ context = {}, value, onChange, onValidityChange
     });
   };
 
+  const activeDisclaimers = useMemo(() => {
+    return visibleQuestions
+      .map((q) => {
+        const selected = (q.options || []).find((opt) => opt.value === (answers[q.id] ?? ''));
+        if (selected?.disclaimer) {
+          return { id: `ai-${q.id}`, label: q.label, message: selected.disclaimer };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }, [visibleQuestions, answers]);
+
   useEffect(() => {
     if (onValidityChange) onValidityChange(isValid);
   }, [isValid, onValidityChange]);
+
+  useEffect(() => {
+    if (onDisclaimersChange) onDisclaimersChange(activeDisclaimers);
+  }, [activeDisclaimers, onDisclaimersChange]);
 
   return (
     <div className="card">
@@ -54,11 +84,12 @@ function AdditionalInformation({ context = {}, value, onChange, onValidityChange
             const requiredMark = q.required ? <span className="text-danger ms-1">*</span> : null;
             const isInvalid = showErrors && q.required && (value ?? '').toString().trim().length === 0;
             if (q.type === 'select') {
+              const selectedOpt = (q.options || []).find((opt) => opt.value === value);
               return (
                 <div className="col-12" key={q.id}>
-                  <label className="form-label mb-1">
-                    {q.label}
-                    {requiredMark}
+                  <label className="form-label mb-1 d-flex align-items-center gap-2">
+                    <span>{q.label}{requiredMark}</span>
+                    {q.info ? <InfoPopover content={q.info} label={`More about ${q.label}`} /> : null}
                   </label>
                   <select
                     className={`form-select ${isInvalid ? 'is-invalid' : ''}`}
@@ -68,9 +99,14 @@ function AdditionalInformation({ context = {}, value, onChange, onValidityChange
                   >
                     <option value="">{q.placeholder || 'Select an option'}</option>
                     {(q.options || []).map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
+                  {selectedOpt?.disclaimer ? (
+                    <div className="mt-2">
+                      <DisclaimerPopover content={selectedOpt.disclaimer} label={`${q.label} disclaimer`} />
+                    </div>
+                  ) : null}
                   {isInvalid ? <div className="invalid-feedback">This field is required.</div> : null}
                 </div>
               );
@@ -79,9 +115,9 @@ function AdditionalInformation({ context = {}, value, onChange, onValidityChange
             if (q.type === 'textarea') {
               return (
                 <div className="col-12" key={q.id}>
-                  <label className="form-label mb-1">
-                    {q.label}
-                    {requiredMark}
+                  <label className="form-label mb-1 d-flex align-items-center gap-2">
+                    <span>{q.label}{requiredMark}</span>
+                    {q.info ? <InfoPopover content={q.info} label={`More about ${q.label}`} /> : null}
                   </label>
                   <textarea
                     className={`form-control ${isInvalid ? 'is-invalid' : ''}`}

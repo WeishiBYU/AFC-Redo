@@ -2,12 +2,12 @@
   "title": "Your Information",
   "description": "Tell us how to reach you and where to service.",
   "fields": [
-    { "id": "firstName", "label": "First name", "type": "text", "required": true },
-    { "id": "lastName", "label": "Last name", "type": "text", "required": true },
-    { "id": "email", "label": "Email", "type": "email", "required": true },
-    { "id": "phone", "label": "Phone", "type": "tel", "required": true, "placeholder": "(###) ###-####" },
-    { "id": "address1", "label": "Service address", "type": "text", "required": true },
-    { "id": "address2", "label": "Apt/Suite", "type": "text", "required": false },
+    { "id": "firstName", "label": "First name", "type": "text", "required": true, "info": "Used on your estimate and reminders." },
+    { "id": "lastName", "label": "Last name", "type": "text", "required": true, "info": "Helps match your booking to any past visits." },
+    { "id": "email", "label": "Email", "type": "email", "required": true, "info": "We send confirmations and receipts here." },
+    { "id": "phone", "label": "Phone", "type": "tel", "required": true, "placeholder": "(###) ###-####", "info": "Mobile preferred for day-of texts and updates." },
+    { "id": "address1", "label": "Service address", "type": "text", "required": true, "info": "Where the crew will arrive; include building name if helpful." },
+    { "id": "address2", "label": "Apt/Suite", "type": "text", "required": false, "info": "Gate codes, unit numbers, or parking notes go great here." },
     { "id": "city", "label": "City", "type": "text", "required": true },
     { "id": "state", "label": "State", "type": "text", "required": true },
     { "id": "zip", "label": "ZIP", "type": "text", "required": true },
@@ -17,7 +17,8 @@
       "type": "select",
       "required": true,
       "options": ["Yes", "No"],
-      "placeholder": "Select one"
+      "placeholder": "Select one",
+      "info": "If not attending, please add payment preference so we can finalize remotely."
     },
     {
       "id": "payment",
@@ -26,14 +27,16 @@
       "required": false,
       "options": ["Pre-pay (required if not attending)", "Pay at service"],
       "placeholder": "Select one",
-      "showIf": { "field": "attending", "equals": "No" }
+      "showIf": { "field": "attending", "equals": "No" },
+      "info": "Pre-pay lets us start right away if no one is onsite."
     },
     {
       "id": "special",
       "label": "Special instructions",
       "type": "textarea",
       "required": false,
-      "placeholder": "Entry details, pets, parking, access codes"
+      "placeholder": "Entry details, pets, parking, access codes",
+      "info": "Anything that helps the crew arrive smoothly (gate, pets, parking)."
     }
   ]
 }

@@ -131,87 +131,109 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
         unitPrice: selectedPackage.price || 0,
         linePrice: selectedPackage.price || 0,
         isPackage: true,
+        addons: [],
       });
     }
-    let totalDeoMildRooms = 0;
-    let totalDeoMaxRooms = 0;
-    let anyProtect = false;
+
+    const protectEligibleLines = [];
+    const mildLines = [];
+    const maxLines = [];
 
     categories.forEach((cat) => {
       cat.items.forEach((item) => {
         const sel = selections[item.id];
         const qty = sel?.qty || 0;
         if (qty > 0) {
-          const linePrice = (item.basePrice || 0) * qty;
-          subtotal += linePrice;
-          lines.push({
+          const baseLinePrice = (item.basePrice || 0) * qty;
+          const line = {
             id: item.id,
             label: item.label,
             qty,
             unitPrice: item.basePrice,
-            linePrice,
+            linePrice: baseLinePrice,
             protect: sel?.protect,
             deodorize: sel?.deodorize || defaultDeodorize,
-          });
-          if (sel?.protect) {
-            anyProtect = true;
-          }
+            addons: [],
+          };
+
+          if (sel?.protect) protectEligibleLines.push(line);
           if (carpetItemIds.has(item.id)) {
-            if ((sel?.deodorize || defaultDeodorize) === 'mild') totalDeoMildRooms += qty;
-            if ((sel?.deodorize || defaultDeodorize) === 'max') totalDeoMaxRooms += qty;
+            if ((sel?.deodorize || defaultDeodorize) === 'mild') mildLines.push({ line, qty });
+            if ((sel?.deodorize || defaultDeodorize) === 'max') maxLines.push({ line, qty });
           }
+
+          subtotal += baseLinePrice;
+          lines.push(line);
         }
       });
     });
 
-    // Protect flat add-on
-    if (anyProtect && addOnConfig.protectFlat) {
+    // Attach protect flat fee to the first protected line.
+    if (protectEligibleLines.length > 0 && addOnConfig.protectFlat) {
+      const target = protectEligibleLines[0];
+      target.addons.push({ id: 'addon-protect', label: 'Protect', amount: addOnConfig.protectFlat });
+      target.linePrice += addOnConfig.protectFlat;
       subtotal += addOnConfig.protectFlat;
-      lines.push({
-        id: 'protect-flat',
-        label: 'Protect (flat)',
-        qty: 1,
-        unitPrice: addOnConfig.protectFlat,
-        linePrice: addOnConfig.protectFlat,
+    }
+
+    // Deodorize pricing (attached to each carpet line)
+    const deoConfig = addOnConfig.deodorize || {};
+
+    if (mildLines.length > 0 && deoConfig.mild) {
+      let flatRemaining = deoConfig.mild.flat || 0;
+      mildLines.forEach(({ line, qty }, idx) => {
+        const unit = deoConfig.mild.perRoom || 0;
+        let addAmount = unit * qty;
+        if (flatRemaining > 0) {
+          addAmount += flatRemaining;
+          flatRemaining = 0;
+        }
+        if (addAmount > 0) {
+          line.addons.push({
+            id: `addon-deo-mild-${line.id}`,
+            label: 'Deodorize (Mild)',
+            amount: addAmount,
+            qty,
+            qtyLabel: idx === 0 && (deoConfig.mild.flat || 0) > 0 ? `${qty} rooms + flat` : `${qty} rooms`,
+          });
+          line.linePrice += addAmount;
+          subtotal += addAmount;
+        }
       });
     }
 
-    // Deodorize pricing (only carpet items)
-    const deoConfig = addOnConfig.deodorize || {};
-    if (totalDeoMildRooms > 0 && deoConfig.mild) {
-      const unit = deoConfig.mild.perRoom || 0;
-      const flat = deoConfig.mild.flat || 0;
-      const linePrice = unit * totalDeoMildRooms + flat;
-      subtotal += linePrice;
-      lines.push({
-        id: 'deodorize-mild',
-        label: 'Deodorize (Mild)',
-        qty: totalDeoMildRooms,
-        unitPrice: unit,
-        linePrice,
-      });
-    }
-    if (totalDeoMaxRooms > 0 && deoConfig.max) {
+    if (maxLines.length > 0 && deoConfig.max) {
       const unit = deoConfig.max.perRoom || 0;
-      const capRooms = deoConfig.max.capRooms || 0;
-      const capTotal = deoConfig.max.capTotal || 0;
-      const cappedRooms = Math.min(totalDeoMaxRooms, capRooms);
-      const cappedPart = capRooms > 0 ? Math.min(capTotal, cappedRooms * unit) : 0;
-      const extraRooms = Math.max(totalDeoMaxRooms - capRooms, 0);
-      const linePrice = cappedPart + extraRooms * unit;
-      subtotal += linePrice;
-      lines.push({
-        id: 'deodorize-max',
-        label: 'Deodorize (Max)',
-        qty: totalDeoMaxRooms,
-        unitPrice: unit,
-        linePrice,
+      let capRooms = deoConfig.max.capRooms || 0;
+      let capBudget = deoConfig.max.capTotal || 0;
+
+      maxLines.forEach(({ line, qty }) => {
+        const roomsInCap = Math.min(capRooms, qty);
+        const capPortion = capRooms > 0 ? Math.min(capBudget, roomsInCap * unit) : 0;
+        capRooms = Math.max(capRooms - roomsInCap, 0);
+        capBudget = Math.max(capBudget - capPortion, 0);
+
+        const extraRooms = Math.max(qty - roomsInCap, 0);
+        const extraPortion = extraRooms * unit;
+
+        const addAmount = capPortion + extraPortion;
+        if (addAmount > 0) {
+          line.addons.push({
+            id: `addon-deo-max-${line.id}`,
+            label: 'Deodorize (Max)',
+            amount: addAmount,
+            qty,
+            qtyLabel: `${qty} rooms` + (capPortion > 0 && (deoConfig.max.capTotal || 0) > 0 ? ' (cap applied)' : ''),
+          });
+          line.linePrice += addAmount;
+          subtotal += addAmount;
+        }
       });
     }
 
     const enforcedTotal = Math.max(subtotal, minTotal);
     return { subtotal, enforcedTotal, lines };
-  }, [addOnConfig, carpetItemIds, categories, minTotal, selections, selectedPackage]);
+  }, [addOnConfig, carpetItemIds, categories, minTotal, selections, selectedPackage, defaultDeodorize]);
 
   const activeDisclaimers = useMemo(() => {
     const result = [];

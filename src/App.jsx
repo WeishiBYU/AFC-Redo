@@ -58,6 +58,7 @@ function App() {
           qtyLabel: preVacSelection,
           unitPrice: linePrice / Math.max(totalAreas, 1),
           linePrice,
+          isAddon: true,
         });
       }
     }
@@ -83,6 +84,7 @@ function App() {
         qtyLabel: urineValue,
         unitPrice: unit,
         linePrice,
+        isAddon: true,
       });
     }
 
@@ -103,6 +105,7 @@ function App() {
         qtyLabel: darkValue,
         unitPrice: darkTierPrice,
         linePrice: darkTierPrice,
+        isAddon: true,
       });
     }
 
@@ -123,6 +126,7 @@ function App() {
         qtyLabel: colorfulValue,
         unitPrice: colorfulTier.price,
         linePrice: colorfulTier.price,
+        isAddon: true,
       });
     }
 

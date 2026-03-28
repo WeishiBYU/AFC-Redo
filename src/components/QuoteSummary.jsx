@@ -7,6 +7,8 @@ function formatCurrency(symbol, amount) {
 function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const lines = totals?.lines || [];
+  const addonLines = lines.filter((l) => l.isAddon);
+  const mainLines = lines.filter((l) => !l.isAddon);
   const subtotal = totals?.subtotal ?? 0;
   const enforcedTotal = totals?.enforcedTotal ?? Math.max(subtotal, minTotal);
   const minApplied = subtotal < minTotal;
@@ -24,19 +26,51 @@ function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
             {lines.length === 0 ? (
               <p className="text-muted mb-0">Add quantities to see your estimate.</p>
             ) : (
-              <ul className="list-group list-group-flush mb-3">
-                {lines.map((line) => (
-                  <li key={line.id} className="list-group-item d-flex justify-content-between">
-                    <div>
-                      <div className="fw-semibold">{line.label}</div>
-                      <small className="text-muted">Qty {line.qtyLabel || line.qty}</small>
-                    </div>
-                    <div className="text-end">
-                      <div>{formatCurrency(currency, line.linePrice)}</div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              <>
+                {mainLines.length > 0 ? (
+                  <ul className="list-group list-group-flush mb-2">
+                    {mainLines.map((line) => (
+                      <li key={line.id} className="list-group-item">
+                        <div className="d-flex justify-content-between">
+                          <div>
+                            <div className="fw-semibold">{line.label}</div>
+                            <small className="text-muted">Qty {line.qtyLabel || line.qty}</small>
+                          </div>
+                          <div className="text-end">
+                            <div>{formatCurrency(currency, line.linePrice)}</div>
+                          </div>
+                        </div>
+                        {Array.isArray(line.addons) && line.addons.length > 0 ? (
+                          <ul className="list-unstyled small text-muted mb-0 mt-2">
+                            {line.addons.map((a) => (
+                              <li key={a.id} className="d-flex justify-content-between">
+                                <span>{a.label}{a.qtyLabel ? ` — ${a.qtyLabel}` : ''}</span>
+                                <span className="fw-semibold text-body">+{formatCurrency(currency, a.amount)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {addonLines.length > 0 ? (
+                  <div className="mb-3">
+                    <div className="text-muted small mb-1">Add-ons</div>
+                    <ul className="list-group list-group-flush">
+                      {addonLines.map((line) => (
+                        <li key={line.id} className="list-group-item d-flex justify-content-between py-2 small">
+                          <div>
+                            <div className="fw-semibold">{line.label}</div>
+                            <div className="text-muted">Qty {line.qtyLabel || line.qty}</div>
+                          </div>
+                          <div className="text-end fw-semibold">{formatCurrency(currency, line.linePrice)}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </>
             )}
             <div className="d-flex justify-content-between fw-semibold">
               <span>{totalLabel}</span>
@@ -98,19 +132,51 @@ function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
               {lines.length === 0 ? (
                 <p className="text-muted mb-0">Add quantities to see your estimate.</p>
               ) : (
-                <ul className="list-group list-group-flush mb-3">
-                  {lines.map((line) => (
-                    <li key={line.id} className="list-group-item d-flex justify-content-between">
-                      <div>
-                        <div className="fw-semibold">{line.label}</div>
-                        <small className="text-muted">Qty {line.qtyLabel || line.qty}</small>
-                      </div>
-                      <div className="text-end">
-                        <div>{formatCurrency(currency, line.linePrice)}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  {mainLines.length > 0 ? (
+                    <ul className="list-group list-group-flush mb-2">
+                      {mainLines.map((line) => (
+                        <li key={line.id} className="list-group-item">
+                          <div className="d-flex justify-content-between">
+                            <div>
+                              <div className="fw-semibold">{line.label}</div>
+                              <small className="text-muted">Qty {line.qtyLabel || line.qty}</small>
+                            </div>
+                            <div className="text-end">
+                              <div>{formatCurrency(currency, line.linePrice)}</div>
+                            </div>
+                          </div>
+                          {Array.isArray(line.addons) && line.addons.length > 0 ? (
+                            <ul className="list-unstyled small text-muted mb-0 mt-2">
+                              {line.addons.map((a) => (
+                                <li key={a.id} className="d-flex justify-content-between">
+                                  <span>{a.label}{a.qtyLabel ? ` — ${a.qtyLabel}` : ''}</span>
+                                  <span className="fw-semibold text-body">+{formatCurrency(currency, a.amount)}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  {addonLines.length > 0 ? (
+                    <div className="mb-3">
+                      <div className="text-muted small mb-1">Add-ons</div>
+                      <ul className="list-group list-group-flush">
+                        {addonLines.map((line) => (
+                          <li key={line.id} className="list-group-item d-flex justify-content-between py-2 small">
+                            <div>
+                              <div className="fw-semibold">{line.label}</div>
+                              <div className="text-muted">Qty {line.qtyLabel || line.qty}</div>
+                            </div>
+                            <div className="text-end fw-semibold">{formatCurrency(currency, line.linePrice)}</div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </>
               )}
               <div className="d-flex justify-content-between fw-semibold">
                 <span>{totalLabel}</span>

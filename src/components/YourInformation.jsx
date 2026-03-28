@@ -129,7 +129,7 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
 
   // Attach Google Places Autocomplete to the address field when available.
   useEffect(() => {
-    const apiKey = ta.env?.VITE_GOOGLE_MAPS_API_KEY;
+    const apiKey = import.meta.env?.VITE_GOOGLE_MAPS_API_KEY;
     const inputEl = addressInputRef.current;
     if (!inputEl) return undefined;
 

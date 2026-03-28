@@ -7,11 +7,11 @@
       "label": "Carpet Cleaning",
       "description": "Standard carpeted areas",
       "items": [
-        { "id": "room", "label": "Room", "unit": "room", "basePrice": 0, "minQty": 0 },
-        { "id": "large-room", "label": "Large room", "unit": "room", "basePrice": 0, "minQty": 0 },
-        { "id": "stairs", "label": "Stairs", "unit": "room", "basePrice": 0, "minQty": 0 },
-        { "id": "hallway", "label": "Hallway", "unit": "room", "basePrice": 0, "minQty": 0 },
-        { "id": "walk-in", "label": "Walk-in Closet", "unit": "room", "basePrice": 0, "minQty": 0 },
+        { "id": "room", "label": "Room", "unit": "bedroom, livingroom, office, etc", "basePrice": 0, "minQty": 0 },
+        { "id": "large-room", "label": "Large Room", "unit": "room (over 15x15 Sq ft)", "basePrice": 0, "minQty": 0 },
+        { "id": "stairway", "label": "Stairway", "unit": "stairway (20 steps or less)", "basePrice": 0, "minQty": 0 },
+        { "id": "hallway", "label": "Hallway", "unit": "hallway", "basePrice": 0, "minQty": 0 },
+        { "id": "walk-in", "label": "Walk-in Closet", "unit": "closet", "basePrice": 0, "minQty": 0 },
         { "id": "rug", "label": "Rug", "unit": "rug", "basePrice": 0, "minQty": 0 }
       ]
     },
@@ -25,5 +25,5 @@
       ]
     }
   ],
-  "deodorizeOptions": ["none", "full"]
+  "deodorizeOptions": ["none", "mild", "max"]
 }

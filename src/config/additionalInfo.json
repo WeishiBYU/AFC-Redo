@@ -4,7 +4,7 @@
   "questions": [
     {
     "id": "preVacuum",
-    "label": "Pre-vacuuming prep",
+    "label": "Pre-vacuuming",
     "type": "select",
     "required": true,
     "options": ["Yes, please", "No, I will handle", "Not sure"],
@@ -13,18 +13,26 @@
     },
     {
       "id": "petUrine",
-      "label": "Pet urine issues",
+      "label": "Pet urine spots",
       "type": "select",
       "required": true,
-      "options": ["None", "1 room", "2 room"],
+      "options": ["None", "1 spot", "1 room", "2 rooms", "3 rooms", "4 or more rooms"],
       "placeholder": "Select one"
     },
     {
-      "id": "stainTreatment",
-      "label": "Stain treatment",
+      "id": "stainTreatmentDark",
+      "label": "Dark stain treatment (coffee, greese, dirt)",
       "type": "select",
       "required": true,
-      "options": ["None", "1-3 stains", "4-6 stains", "7-9 stains"],
+      "options": ["None", "1-4 stains", "5-9 stains", "10+ stains"],
+      "placeholder": "Select one"
+    },
+    {
+      "id": "stainTreatmentColorful",
+      "label": "Colorful stain treatment (drinks, markers, ink)",
+      "type": "select",
+      "required": true,
+      "options": ["None", "1-3 stains", "4-6 stains", "7+ (to be quoted)"],
       "placeholder": "Select one"
     },
     {
@@ -32,7 +40,7 @@
       "label": "Special instructions or additional details",
       "type": "textarea",
       "required": false,
-      "placeholder": "Optional notes for access, pets, parking, stairs, or stains"
+      "placeholder": "Optional helpful notes (stains, urine areas, pet problem areas, or access)"
     }
   ]
 }

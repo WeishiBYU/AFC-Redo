@@ -6,6 +6,7 @@ import Scheduling from './components/Scheduling.jsx';
 import YourInformation from './components/YourInformation.jsx';
 import ReviewConfirm from './components/ReviewConfirm.jsx';
 import pricingConfig from './config/pricing.json';
+import pageContent from './config/pageContent.json';
 
 function App() {
   const [step, setStep] = useState(1);
@@ -22,6 +23,26 @@ function App() {
   const [showErrors, setShowErrors] = useState(false);
   const [quoteDisclaimers, setQuoteDisclaimers] = useState([]);
   const [additionalDisclaimers, setAdditionalDisclaimers] = useState([]);
+
+  const copyFor = (key, fallbackTitle) => {
+    const section = pageContent?.[key] || {};
+    return {
+      title: section.title || fallbackTitle,
+      description: section.description || '',
+    };
+  };
+
+  const renderDescription = (text) => {
+    if (!text) return null;
+    return text
+      .split(/\n{2,}/)
+      .filter(Boolean)
+      .map((para, idx) => (
+        <p key={idx} className="text-muted mb-3">
+          {para}
+        </p>
+      ));
+  };
 
   const combinedDisclaimers = useMemo(() => {
     const byId = new Map();
@@ -66,7 +87,15 @@ function App() {
     <div className="container py-4 pb-5" style={{ paddingBottom: '6rem' }}>
       {step === 1 && (
         <>
-          <h1 className="mb-3">Quote Estimator (Scaffold)</h1>
+          {(() => {
+            const { title, description } = copyFor('quoteEstimator', 'Quote Estimator');
+            return (
+              <>
+                <h1 className="mb-2">{title}</h1>
+                {renderDescription(description)}
+              </>
+            );
+          })()}
           <QuoteEstimator
             selections={quoteSelections}
             onSelectionsChange={setQuoteSelections}
@@ -90,7 +119,15 @@ function App() {
 
       {step === 2 && (
         <>
-          <h2 className="mb-3">Additional Information (Scaffold)</h2>
+          {(() => {
+            const { title, description } = copyFor('additionalInformation', 'Additional Information');
+            return (
+              <>
+                <h2 className="mb-2">{title}</h2>
+                {renderDescription(description)}
+              </>
+            );
+          })()}
           <div className="row g-4 pb-5 pb-lg-0">
             <div className="col-lg-8">
               <AdditionalInformation
@@ -124,7 +161,15 @@ function App() {
 
       {step === 3 && (
         <>
-          <h2 className="mb-3">Scheduling (Scaffold)</h2>
+          {(() => {
+            const { title, description } = copyFor('scheduling', 'Scheduling');
+            return (
+              <>
+                <h2 className="mb-2">{title}</h2>
+                {renderDescription(description)}
+              </>
+            );
+          })()}
           <div className="row g-4 pb-5 pb-lg-0">
             <div className="col-lg-8">
               <Scheduling
@@ -156,7 +201,15 @@ function App() {
 
       {step === 4 && (
         <>
-          <h2 className="mb-3">Your Information (Scaffold)</h2>
+          {(() => {
+            const { title, description } = copyFor('yourInformation', 'Your Information');
+            return (
+              <>
+                <h2 className="mb-2">{title}</h2>
+                {renderDescription(description)}
+              </>
+            );
+          })()}
           <div className="row g-4 pb-5 pb-lg-0">
             <div className="col-lg-8">
               <YourInformation
@@ -188,7 +241,15 @@ function App() {
 
       {step === 5 && (
         <>
-          <h2 className="mb-3">Review & Confirm (Scaffold)</h2>
+          {(() => {
+            const { title, description } = copyFor('reviewConfirm', 'Review & Confirm');
+            return (
+              <>
+                <h2 className="mb-2">{title}</h2>
+                {description ? <p className="text-muted mb-3">{description}</p> : null}
+              </>
+            );
+          })()}
           <div className="row g-4 pb-5 pb-lg-0">
             <div className="col-lg-8">
               <ReviewConfirm

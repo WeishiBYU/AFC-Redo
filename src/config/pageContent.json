@@ -1,0 +1,22 @@
+{
+  "quoteEstimator": {
+    "title": "Welcome to Alaska Floor Care Specialists (Fairbanks, AK)",
+    "description": "\n\nCommercial: Evening starts are available; suggest your preferred time.\n\nTo cancel: Text or call to cancel. Within 24 hours, a $35 fee applies.\n\nQuestions: Text 907-206-2995 or call anytime.\n\nEmail is used to send your booking.\n\nBooking within 24 hours? Please also text or call 907-206-2995 for best results."
+  },
+  "additionalInformation": {
+    "title": "Additional Information",
+    "description": "Share a few extra details so we can prepare the right crew and tools."
+  },
+  "scheduling": {
+    "title": "Scheduling",
+    "description": "Pick a time that works for you or request a callback."
+  },
+  "yourInformation": {
+    "title": "Your Information",
+    "description": "Provide your contact and address so we can confirm your booking."
+  },
+  "reviewConfirm": {
+    "title": "Review & Confirm",
+    "description": "Double-check your details before submitting your request."
+  }
+}

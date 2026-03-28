@@ -27,20 +27,25 @@
   ],
   "packages": [
     {
-      "id": "quick-3",
-      "label": "Quick 3 Rooms",
-      "price": 189,
-      "description": "Fast checkout for three standard rooms plus a hallway.",
-      "includes": ["3 standard rooms", "1 hallway"],
-      "disclaimer": "Selecting a package disables individual carpet selections."
+      "id": "pkg-3-room",
+      "label": "3 Room Package",
+      "price": 280,
+      "description": "Includes pre-vacuum and mild odor treatment. Does not include stairway or hallway.",
+      "includes": ["3 rooms", "Pre-vacuum", "Mild odor treatment"]
     },
     {
-      "id": "whole-home",
-      "label": "Whole Home",
-      "price": 299,
-      "description": "Up to five rooms and one hallway, bundled for convenience.",
-      "includes": ["Up to 5 rooms", "1 hallway", "Standard deodorize"],
-      "disclaimer": "Package replaces carpet a la carte selections."
+      "id": "pkg-2-room-hall",
+      "label": "2 Room + Hall Special",
+      "price": 280,
+      "description": "Two rooms plus one hallway, with pre-vacuum and mild odor treatment. No stairway included.",
+      "includes": ["2 rooms", "1 hallway", "Pre-vacuum", "Mild odor treatment"]
+    },
+    {
+      "id": "pkg-1-room-stair-hall",
+      "label": "1 Room + Stair + Hall",
+      "price": 280,
+      "description": "One room, one stairway, and one hallway, with pre-vacuum and mild odor treatment.",
+      "includes": ["1 room", "1 stairway", "1 hallway", "Pre-vacuum", "Mild odor treatment"]
     }
   ],
   "addOns": {

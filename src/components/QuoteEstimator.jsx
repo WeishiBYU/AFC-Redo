@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import pricingConfig from '../config/pricing.json';
 import QuoteSummary from './QuoteSummary.jsx';
 import InfoPopover from './InfoPopover.jsx';
-import DisclaimerPopover from './DisclaimerPopover.jsx';
 
 function clamp(value, min) {
   return value < min ? min : value;
@@ -14,6 +13,15 @@ function formatCurrency(symbol, amount) {
 
 function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTotalsChange, onValidityChange, onDisclaimersChange }) {
   const { currency, minTotal, categories, deodorizeOptions } = pricingConfig;
+  const normalizedDeodorizeOptions = useMemo(() => {
+    return (deodorizeOptions || []).map((opt) => {
+      if (typeof opt === 'string') return { value: opt, label: opt, disclaimer: null };
+      const value = opt.value ?? opt.label ?? 'none';
+      return { value, label: opt.label ?? value, disclaimer: opt.disclaimer || null };
+    });
+  }, [deodorizeOptions]);
+  const deodorizeMap = useMemo(() => new Map(normalizedDeodorizeOptions.map((opt) => [opt.value, opt])), [normalizedDeodorizeOptions]);
+  const defaultDeodorize = normalizedDeodorizeOptions[0]?.value || 'none';
   const [localSelections, setLocalSelections] = useState(() => selectionsProp || {});
   const [qtyInputs, setQtyInputs] = useState({});
 
@@ -22,7 +30,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
 
   const handleQtyChange = (itemId, delta) => {
     setSelections((prev) => {
-      const current = prev[itemId] || { qty: 0, protect: false, deodorize: 'none' };
+      const current = prev[itemId] || { qty: 0, protect: false, deodorize: defaultDeodorize };
       const nextQty = clamp((current.qty || 0) + delta, 0);
       return { ...prev, [itemId]: { ...current, qty: nextQty } };
     });
@@ -33,7 +41,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
     const parsed = Number.parseInt(value, 10);
     setQtyInputs((prev) => ({ ...prev, [itemId]: value }));
     setSelections((prev) => {
-      const current = prev[itemId] || { qty: 0, protect: false, deodorize: 'none' };
+      const current = prev[itemId] || { qty: 0, protect: false, deodorize: defaultDeodorize };
       const nextQty = Number.isFinite(parsed) ? clamp(parsed, 0) : 0;
       return { ...prev, [itemId]: { ...current, qty: nextQty } };
     });
@@ -54,7 +62,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
     setSelections((prev) => {
       const raw = qtyInputs[itemId];
       const parsed = Number.parseInt(raw, 10);
-      const current = prev[itemId] || { qty: 0, protect: false, deodorize: 'none' };
+      const current = prev[itemId] || { qty: 0, protect: false, deodorize: defaultDeodorize };
       const nextQty = Number.isFinite(parsed) ? clamp(parsed, 0) : 0;
       return { ...prev, [itemId]: { ...current, qty: nextQty } };
     });
@@ -62,15 +70,16 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
 
   const handleProtectToggle = (itemId, enabled) => {
     setSelections((prev) => {
-      const current = prev[itemId] || { qty: 0, protect: false, deodorize: 'none' };
+      const current = prev[itemId] || { qty: 0, protect: false, deodorize: defaultDeodorize };
       return { ...prev, [itemId]: { ...current, protect: enabled && (current.qty > 0) } };
     });
   };
 
   const handleDeodorize = (itemId, value) => {
     setSelections((prev) => {
-      const current = prev[itemId] || { qty: 0, protect: false, deodorize: 'none' };
-      return { ...prev, [itemId]: { ...current, deodorize: current.qty > 0 ? value : 'none' } };
+      const current = prev[itemId] || { qty: 0, protect: false, deodorize: defaultDeodorize };
+      const safeValue = deodorizeMap.has(value) ? value : defaultDeodorize;
+      return { ...prev, [itemId]: { ...current, deodorize: current.qty > 0 ? safeValue : defaultDeodorize } };
     });
   };
 
@@ -91,7 +100,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
             unitPrice: item.basePrice,
             linePrice,
             protect: sel?.protect,
-            deodorize: sel?.deodorize || 'none',
+            deodorize: sel?.deodorize || defaultDeodorize,
           });
         }
       });
@@ -109,10 +118,14 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
         if (item.disclaimer && qty > 0) {
           result.push({ id: `service-${item.id}`, label: item.label, message: item.disclaimer });
         }
+        const deodorizeOpt = deodorizeMap.get(sel?.deodorize || '');
+        if (qty > 0 && deodorizeOpt?.disclaimer) {
+          result.push({ id: `deodorize-${item.id}`, label: `${item.label} deodorize`, message: deodorizeOpt.disclaimer });
+        }
       });
     });
     return result;
-  }, [categories, selections]);
+  }, [categories, selections, deodorizeMap]);
 
   useEffect(() => {
     if (onTotalsChange) {
@@ -169,17 +182,24 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                       </thead>
                       <tbody>
                         {cat.items.map((item) => {
-                          const sel = selections[item.id] || { qty: 0, protect: false, deodorize: 'none' };
+                          const sel = selections[item.id] || { qty: 0, protect: false, deodorize: defaultDeodorize };
+                          const deodorizeOpt = deodorizeMap.get(sel.deodorize || '');
                           const displayQty = qtyInputs[item.id] ?? String(sel.qty ?? 0);
+                          const itemDisclaimerActive = item.disclaimer && sel.qty > 0;
+                          const deodorizeDisclaimerActive = sel.qty > 0 && deodorizeOpt?.disclaimer;
                           return (
                             <tr key={item.id}>
                               <td>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
                                   <div className="fw-semibold mb-0">{item.label}</div>
                                   {item.info ? <InfoPopover content={item.info} label={`More about ${item.label}`} /> : null}
-                                  {item.disclaimer && sel.qty > 0 ? <DisclaimerPopover content={item.disclaimer} label={`${item.label} disclaimer`} /> : null}
                                 </div>
                                 {item.unit ? <small className="text-muted">Per {item.unit}</small> : null}
+                                {itemDisclaimerActive ? (
+                                  <div className="alert alert-warning p-2 small mt-2 mb-0">
+                                    <strong>Disclaimer:</strong> {item.disclaimer}
+                                  </div>
+                                ) : null}
                               </td>
                               <td className="text-center">
                                 <div className="input-group input-group-sm justify-content-center" style={{ maxWidth: '150px', margin: '0 auto' }}>
@@ -209,16 +229,23 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                 </div>
                               </td>
                               <td className="text-center">
-                                <select
-                                  className="form-select form-select-sm"
-                                  value={sel.deodorize}
-                                  disabled={sel.qty === 0}
-                                  onChange={(e) => handleDeodorize(item.id, e.target.value)}
-                                >
-                                  {deodorizeOptions.map((opt) => (
-                                    <option key={opt} value={opt}>{opt}</option>
-                                  ))}
-                                </select>
+                                <div className="d-flex flex-column align-items-center gap-1">
+                                  <select
+                                    className="form-select form-select-sm"
+                                    value={sel.deodorize}
+                                    disabled={sel.qty === 0}
+                                    onChange={(e) => handleDeodorize(item.id, e.target.value)}
+                                  >
+                                    {normalizedDeodorizeOptions.map((opt) => (
+                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                  </select>
+                                  {deodorizeDisclaimerActive ? (
+                                    <div className="alert alert-warning p-2 small mt-1 mb-0 text-start" style={{ minWidth: '180px' }}>
+                                      <strong>Disclaimer:</strong> {deodorizeOpt.disclaimer}
+                                    </div>
+                                  ) : null}
+                                </div>
                               </td>
                             </tr>
                           );
@@ -230,8 +257,11 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                   {/* Mobile layout: per-row accordions */}
                   <div className="d-md-none mt-3">
                     {cat.items.map((item) => {
-                      const sel = selections[item.id] || { qty: 0, protect: false, deodorize: 'none' };
+                      const sel = selections[item.id] || { qty: 0, protect: false, deodorize: defaultDeodorize };
+                      const deodorizeOpt = deodorizeMap.get(sel.deodorize || '');
                       const displayQty = qtyInputs[item.id] ?? String(sel.qty ?? 0);
+                      const itemDisclaimerActive = item.disclaimer && sel.qty > 0;
+                      const deodorizeDisclaimerActive = sel.qty > 0 && deodorizeOpt?.disclaimer;
                       return (
                         <div className="accordion" key={`m-${item.id}`} id={`acc-${cat.id}-${item.id}`}>
                           <div className="accordion-item">
@@ -248,9 +278,13 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                   <div className="d-flex align-items-center gap-2 flex-wrap">
                                     <span>{item.label}</span>
                                     {item.info ? <InfoPopover content={item.info} label={`More about ${item.label}`} /> : null}
-                                    {item.disclaimer && sel.qty > 0 ? <DisclaimerPopover content={item.disclaimer} label={`${item.label} disclaimer`} /> : null}
                                   </div>
                                   {item.unit ? <small className="text-muted">Per {item.unit}</small> : null}
+                                  {itemDisclaimerActive ? (
+                                    <div className="alert alert-warning p-2 small mt-2 mb-0">
+                                      <strong>Disclaimer:</strong> {item.disclaimer}
+                                    </div>
+                                  ) : null}
                                 </div>
                                 <div className="ms-auto text-end">
                                   <small className="text-muted">Qty: {sel.qty}</small>
@@ -294,16 +328,23 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                 </div>
                                 <div className="mb-2">
                                   <label className="form-label">Deodorize</label>
-                                  <select
-                                    className="form-select form-select-sm"
-                                    value={sel.deodorize}
-                                    disabled={sel.qty === 0}
-                                    onChange={(e) => handleDeodorize(item.id, e.target.value)}
-                                  >
-                                    {deodorizeOptions.map((opt) => (
-                                      <option key={opt} value={opt}>{opt}</option>
-                                    ))}
-                                  </select>
+                                  <div className="d-flex flex-column gap-2 align-items-start">
+                                    <select
+                                      className="form-select form-select-sm"
+                                      value={sel.deodorize}
+                                      disabled={sel.qty === 0}
+                                      onChange={(e) => handleDeodorize(item.id, e.target.value)}
+                                    >
+                                      {normalizedDeodorizeOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                      ))}
+                                    </select>
+                                    {deodorizeDisclaimerActive ? (
+                                      <div className="alert alert-warning p-2 small mb-0">
+                                        <strong>Disclaimer:</strong> {deodorizeOpt.disclaimer}
+                                      </div>
+                                    ) : null}
+                                  </div>
                                 </div>
                               </div>
                             </div>

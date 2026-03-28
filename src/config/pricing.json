@@ -25,5 +25,9 @@
       ]
     }
   ],
-  "deodorizeOptions": ["none", "mild", "max"]
+  "deodorizeOptions": [
+    { "value": "none", "label": "None" },
+    { "value": "mild", "label": "Mild", "disclaimer": "We will try our best to reduce odors, but deep or old odors may remain after treatment." },
+    { "value": "max", "label": "Max", "disclaimer": "We will try our best to reduce odors, but deep or old odors may remain after treatment." }
+  ]
 }

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import additionalInfoConfig from '../config/additionalInfo.json';
 import InfoPopover from './InfoPopover.jsx';
-import DisclaimerPopover from './DisclaimerPopover.jsx';
 
 function AdditionalInformation({ context = {}, value, onChange, onValidityChange, onDisclaimersChange, showErrors = false }) {
   const { title, description, questions } = additionalInfoConfig;
@@ -103,8 +102,8 @@ function AdditionalInformation({ context = {}, value, onChange, onValidityChange
                     ))}
                   </select>
                   {selectedOpt?.disclaimer ? (
-                    <div className="mt-2">
-                      <DisclaimerPopover content={selectedOpt.disclaimer} label={`${q.label} disclaimer`} />
+                    <div className="alert alert-warning p-2 small mt-2 mb-0">
+                      <strong>Disclaimer:</strong> {selectedOpt.disclaimer}
                     </div>
                   ) : null}
                   {isInvalid ? <div className="invalid-feedback">This field is required.</div> : null}

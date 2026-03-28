@@ -6,11 +6,23 @@
     { "id": "lastName", "label": "Last name", "type": "text", "required": true, "info": "Helps match your booking to any past visits." },
     { "id": "email", "label": "Email", "type": "email", "required": true, "info": "We send confirmations and receipts here." },
     { "id": "phone", "label": "Phone", "type": "tel", "required": true, "placeholder": "(###) ###-####", "info": "Mobile preferred for day-of texts and updates." },
-    { "id": "address1", "label": "Service address", "type": "text", "required": true, "info": "Where the crew will arrive; include building name if helpful." },
-    { "id": "address2", "label": "Apt/Suite", "type": "text", "required": false, "info": "Gate codes, unit numbers, or parking notes go great here." },
-    { "id": "city", "label": "City", "type": "text", "required": true },
-    { "id": "state", "label": "State", "type": "text", "required": true },
-    { "id": "zip", "label": "ZIP", "type": "text", "required": true },
+    {
+      "id": "address",
+      "label": "Service address",
+      "type": "text",
+      "required": true,
+      "placeholder": "Start typing your address",
+      "info": "Single box with browser address autocomplete; include street, city, and ZIP.",
+      "width": "full"
+    },
+    {
+      "id": "unit",
+      "label": "Apt / Unit (optional)",
+      "type": "text",
+      "required": false,
+      "placeholder": "Apt, unit, suite, building",
+      "info": "Use if your address has a unit, suite, building, or apartment number."
+    },
     {
       "id": "attending",
       "label": "Will the paying party be there to let us in on the day of the appointment?",

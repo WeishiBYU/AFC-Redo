@@ -2,10 +2,44 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import config from '../config/yourInfo.json';
 import InfoPopover from './InfoPopover.jsx';
 
+// Load the Google Maps JS API (Places library) once and reuse it.
+const GOOGLE_SCRIPT_ID = 'google-maps-places';
+let googleLoaderPromise;
+
+const loadGooglePlaces = (apiKey) => {
+  if (typeof window !== 'undefined' && window.google?.maps?.places) return Promise.resolve(window.google);
+  if (googleLoaderPromise) return googleLoaderPromise;
+
+  googleLoaderPromise = new Promise((resolve, reject) => {
+    if (!apiKey) {
+      resolve(null);
+      return;
+    }
+
+    const existing = document.getElementById(GOOGLE_SCRIPT_ID);
+    if (existing) {
+      existing.addEventListener('load', () => resolve(window.google));
+      existing.addEventListener('error', () => resolve(null));
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.id = GOOGLE_SCRIPT_ID;
+    script.async = true;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.onload = () => resolve(window.google);
+    script.onerror = () => resolve(null);
+    document.head.appendChild(script);
+  });
+
+  return googleLoaderPromise;
+};
+
 function YourInformation({ value, onChange, onValidityChange, showErrors = false }) {
   const { title, description, fields } = config;
   const formRef = useRef(null);
   const editingFieldRef = useRef(null);
+  const addressInputRef = useRef(null);
   const [values, setValues] = useState(() => {
     if (value) return value;
     const seed = {};
@@ -93,6 +127,34 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
     updateValue(id, value, { allowEmpty: true });
   };
 
+  // Attach Google Places Autocomplete to the address field when available.
+  useEffect(() => {
+    const apiKey = ta.env?.VITE_GOOGLE_MAPS_API_KEY;
+    const inputEl = addressInputRef.current;
+    if (!inputEl) return undefined;
+
+    let autocomplete;
+    let listener;
+    loadGooglePlaces(apiKey).then((google) => {
+      if (!google?.maps?.places || !addressInputRef.current) return;
+      autocomplete = new google.maps.places.Autocomplete(addressInputRef.current, {
+        types: ['address'],
+        fields: ['formatted_address', 'address_components'],
+        componentRestrictions: { country: 'us' },
+      });
+      listener = autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        const formatted = place?.formatted_address || addressInputRef.current.value || '';
+        updateValue('address', formatted, { allowEmpty: true });
+      });
+    });
+
+    return () => {
+      if (listener && listener.remove) listener.remove();
+      if (listener && typeof listener === 'function') listener();
+    };
+  }, []);
+
   const renderField = (f) => {
     const val = values[f.id] ?? '';
     const requiredMark = f.required ? <span className="text-danger ms-1">*</span> : null;
@@ -103,11 +165,8 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
       lastName: 'family-name',
       email: 'email',
       phone: 'tel',
-      address1: 'address-line1',
-      address2: 'address-line2',
-      city: 'address-level2',
-      state: 'address-level1',
-      zip: 'postal-code',
+      address: 'street-address',
+      unit: 'address-line2',
       attending: 'off',
       payment: 'off',
       special: 'off',
@@ -169,8 +228,10 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
       );
     }
 
+    const columnClass = f.width === 'full' ? 'col-12' : 'col-md-6';
+
     return (
-      <div className="col-md-6" key={f.id}>
+      <div className={columnClass} key={f.id}>
         <label className="form-label mb-1 d-flex align-items-center gap-2">
           <span>{f.label}{requiredMark}</span>
           {f.info ? <InfoPopover content={f.info} label={`More about ${f.label}`} /> : null}
@@ -184,6 +245,7 @@ function YourInformation({ value, onChange, onValidityChange, showErrors = false
           autoComplete={autoComplete}
           name={f.id}
           data-field-id={f.id}
+          ref={f.id === 'address' ? addressInputRef : null}
           onFocus={() => { editingFieldRef.current = f.id; }}
           onBlur={() => { editingFieldRef.current = null; syncFromDom(); }}
           onInput={(e) => handleChange(f.id, e.target.value)}

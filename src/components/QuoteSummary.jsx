@@ -25,7 +25,7 @@ function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
                   <li key={line.id} className="list-group-item d-flex justify-content-between">
                     <div>
                       <div className="fw-semibold">{line.label}</div>
-                      <small className="text-muted">Qty {line.qty}</small>
+                      <small className="text-muted">Qty {line.qtyLabel || line.qty}</small>
                     </div>
                     <div className="text-end">
                       <div>{formatCurrency(currency, line.linePrice)}</div>
@@ -105,7 +105,7 @@ function QuoteSummary({ currency, minTotal, totals, disclaimers = [] }) {
                     <li key={line.id} className="list-group-item d-flex justify-content-between">
                       <div>
                         <div className="fw-semibold">{line.label}</div>
-                        <small className="text-muted">Qty {line.qty}</small>
+                        <small className="text-muted">Qty {line.qtyLabel || line.qty}</small>
                       </div>
                       <div className="text-end">
                         <div>{formatCurrency(currency, line.linePrice)}</div>

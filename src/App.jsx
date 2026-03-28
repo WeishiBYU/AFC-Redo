@@ -55,6 +55,7 @@ function App() {
           id: 'addon-prevac',
           label: 'Pre-vacuuming',
           qty: Math.max(totalAreas, 1),
+          qtyLabel: preVacSelection,
           unitPrice: linePrice / Math.max(totalAreas, 1),
           linePrice,
         });
@@ -79,6 +80,7 @@ function App() {
         id: 'addon-urine',
         label: 'Urine treatment',
         qty: urineRooms,
+        qtyLabel: urineValue,
         unitPrice: unit,
         linePrice,
       });
@@ -98,6 +100,7 @@ function App() {
         id: 'addon-dark-stain',
         label: 'Dark stain treatment',
         qty: 1,
+        qtyLabel: darkValue,
         unitPrice: darkTierPrice,
         linePrice: darkTierPrice,
       });
@@ -117,6 +120,7 @@ function App() {
         id: 'addon-colorful-stain',
         label: 'Colorful stain treatment',
         qty: 1,
+        qtyLabel: colorfulValue,
         unitPrice: colorfulTier.price,
         linePrice: colorfulTier.price,
       });

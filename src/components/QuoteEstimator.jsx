@@ -175,7 +175,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                       <thead className="table-light">
                         <tr>
                           <th className="w-50">Service</th>
-                          <th className="text-center">Quantity</th>
+                          <th className="text-center" style={{ minWidth: '130px' }}>Quantity</th>
                           <th className="text-center">Protect</th>
                           <th className="text-center">Deodorize</th>
                         </tr>
@@ -201,7 +201,7 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
                                   </div>
                                 ) : null}
                               </td>
-                              <td className="text-center">
+                              <td className="text-center" style={{ minWidth: '130px' }}>
                                 <div className="input-group input-group-sm justify-content-center" style={{ maxWidth: '150px', margin: '0 auto' }}>
                                   <button className="btn btn-outline-secondary" type="button" onClick={() => handleQtyChange(item.id, -1)}>-</button>
                                   <input

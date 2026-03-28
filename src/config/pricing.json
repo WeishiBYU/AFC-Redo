@@ -7,12 +7,12 @@
       "label": "Carpet Cleaning",
       "description": "Standard carpeted areas",
       "items": [
-        { "id": "room", "label": "Room", "unit": "bedroom, livingroom, office, etc", "basePrice": 0, "minQty": 0, "info": "Typical bedroom or office up to ~150 sq ft." },
-        { "id": "large-room", "label": "Large Room", "unit": "room (over 15x15 Sq ft)", "basePrice": 0, "minQty": 0, "info": "Great for family rooms or basements over 225 sq ft." },
-        { "id": "stairway", "label": "Stairway", "unit": "stairway (20 steps or less)", "basePrice": 0, "minQty": 0, "info": "Includes treads and risers; add another for long runs.", "disclaimer": "Stairways may stay damp longer; use caution when walking until dry." },
-        { "id": "hallway", "label": "Hallway", "unit": "hallway", "basePrice": 0, "minQty": 0, "info": "Count each connecting hallway once." },
-        { "id": "walk-in", "label": "Walk-in Closet", "unit": "closet", "basePrice": 0, "minQty": 0, "info": "Walk-ins attached to serviced rooms." },
-        { "id": "rug", "label": "Rug", "unit": "rug", "basePrice": 0, "minQty": 0, "info": "In-home cleaning for area rugs (not woven silk).", "disclaimer": "Delicate or loose-back rugs may require off-site cleaning and could incur an adjusted quote." }
+        { "id": "room", "label": "Room", "unit": "bedroom, livingroom, office, etc", "basePrice": 80, "minQty": 0, "info": "Typical bedroom or office up to ~150 sq ft." },
+        { "id": "large-room", "label": "Large Room", "unit": "room (over 15x15 Sq ft)", "basePrice": 130, "minQty": 0, "info": "Great for family rooms or basements over 225 sq ft." },
+        { "id": "stairway", "label": "Stairway", "unit": "stairway (20 steps or less)", "basePrice": 100, "minQty": 0, "info": "Includes treads and risers; add another for long runs.", "disclaimer": "Stairways may stay damp longer; use caution when walking until dry." },
+        { "id": "hallway", "label": "Hallway", "unit": "hallway", "basePrice": 40, "minQty": 0, "info": "Count each connecting hallway once." },
+        { "id": "walk-in", "label": "Walk-in Closet", "unit": "closet", "basePrice": 30, "minQty": 0, "info": "Walk-ins attached to serviced rooms." },
+        { "id": "rug", "label": "Rug", "unit": "rug", "basePrice": 80, "minQty": 0, "info": "In-home cleaning for area rugs (not woven silk).", "disclaimer": "Delicate or loose-back rugs may require off-site cleaning and could incur an adjusted quote." }
       ]
     },
     {
@@ -43,6 +43,25 @@
       "disclaimer": "Package replaces carpet a la carte selections."
     }
   ],
+  "addOns": {
+    "protectFlat": 75,
+    "deodorize": {
+      "mild": { "perRoom": 12, "flat": 5 },
+      "max": { "perRoom": 35, "capRooms": 2, "capTotal": 70 }
+    },
+    "preVac": { "room": 10, "stairway": 20, "hallway": 5 },
+    "darkStainTiers": [
+      { "maxQty": 5, "price": 30 },
+      { "maxQty": 10, "price": 60 },
+      { "maxQty": null, "price": 90 }
+    ],
+    "colorfulStainTiers": [
+      { "maxQty": 3, "price": 50 },
+      { "maxQty": 6, "price": 100 },
+      { "maxQty": null, "price": 0, "disclaimer": "7+ colorful stains require on-site quote; price to be determined." }
+    ],
+    "urinePerRoom": 50
+  },
   "deodorizeOptions": [
     { "value": "none", "label": "None" },
     { "value": "mild", "label": "Mild", "disclaimer": "We will try our best to reduce odors, but deep or old odors may remain after treatment." },

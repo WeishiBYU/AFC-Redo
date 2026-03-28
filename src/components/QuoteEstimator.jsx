@@ -12,7 +12,7 @@ function formatCurrency(symbol, amount) {
 }
 
 function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTotalsChange, onValidityChange, onDisclaimersChange }) {
-  const { currency, minTotal, categories, deodorizeOptions, packages: packageOptions = [] } = pricingConfig;
+  const { currency, minTotal, categories, deodorizeOptions, packages: packageOptions = [], addOns: addOnConfig = {} } = pricingConfig;
   const normalizedDeodorizeOptions = useMemo(() => {
     return (deodorizeOptions || []).map((opt) => {
       if (typeof opt === 'string') return { value: opt, label: opt, disclaimer: null };
@@ -133,12 +133,16 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
         isPackage: true,
       });
     }
+    let totalDeoMildRooms = 0;
+    let totalDeoMaxRooms = 0;
+    let anyProtect = false;
+
     categories.forEach((cat) => {
       cat.items.forEach((item) => {
         const sel = selections[item.id];
         const qty = sel?.qty || 0;
         if (qty > 0) {
-          const linePrice = item.basePrice * qty; // placeholder pricing logic
+          const linePrice = (item.basePrice || 0) * qty;
           subtotal += linePrice;
           lines.push({
             id: item.id,
@@ -149,12 +153,65 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
             protect: sel?.protect,
             deodorize: sel?.deodorize || defaultDeodorize,
           });
+          if (sel?.protect) {
+            anyProtect = true;
+          }
+          if (carpetItemIds.has(item.id)) {
+            if ((sel?.deodorize || defaultDeodorize) === 'mild') totalDeoMildRooms += qty;
+            if ((sel?.deodorize || defaultDeodorize) === 'max') totalDeoMaxRooms += qty;
+          }
         }
       });
     });
+
+    // Protect flat add-on
+    if (anyProtect && addOnConfig.protectFlat) {
+      subtotal += addOnConfig.protectFlat;
+      lines.push({
+        id: 'protect-flat',
+        label: 'Protect (flat)',
+        qty: 1,
+        unitPrice: addOnConfig.protectFlat,
+        linePrice: addOnConfig.protectFlat,
+      });
+    }
+
+    // Deodorize pricing (only carpet items)
+    const deoConfig = addOnConfig.deodorize || {};
+    if (totalDeoMildRooms > 0 && deoConfig.mild) {
+      const unit = deoConfig.mild.perRoom || 0;
+      const flat = deoConfig.mild.flat || 0;
+      const linePrice = unit * totalDeoMildRooms + flat;
+      subtotal += linePrice;
+      lines.push({
+        id: 'deodorize-mild',
+        label: 'Deodorize (Mild)',
+        qty: totalDeoMildRooms,
+        unitPrice: unit,
+        linePrice,
+      });
+    }
+    if (totalDeoMaxRooms > 0 && deoConfig.max) {
+      const unit = deoConfig.max.perRoom || 0;
+      const capRooms = deoConfig.max.capRooms || 0;
+      const capTotal = deoConfig.max.capTotal || 0;
+      const cappedRooms = Math.min(totalDeoMaxRooms, capRooms);
+      const cappedPart = capRooms > 0 ? Math.min(capTotal, cappedRooms * unit) : 0;
+      const extraRooms = Math.max(totalDeoMaxRooms - capRooms, 0);
+      const linePrice = cappedPart + extraRooms * unit;
+      subtotal += linePrice;
+      lines.push({
+        id: 'deodorize-max',
+        label: 'Deodorize (Max)',
+        qty: totalDeoMaxRooms,
+        unitPrice: unit,
+        linePrice,
+      });
+    }
+
     const enforcedTotal = Math.max(subtotal, minTotal);
     return { subtotal, enforcedTotal, lines };
-  }, [categories, minTotal, selections, selectedPackage]);
+  }, [addOnConfig, carpetItemIds, categories, minTotal, selections, selectedPackage]);
 
   const activeDisclaimers = useMemo(() => {
     const result = [];
@@ -478,6 +535,8 @@ function QuoteEstimator({ selections: selectionsProp, onSelectionsChange, onTota
             )}
           </div>
         </div>
+
+        {/* Add-ons card removed per request */}
       </div>
     </div>
     </>
